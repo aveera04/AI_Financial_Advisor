@@ -11,7 +11,7 @@ langgraph>=0.0.30
 langchain-groq>=0.0.1
 langchain-openai>=0.0.8
 langchain-tavily>=0.0.1
-langchain-google-community[places]>=1.0.0
+
 
 # HTTP and Environment
 python-dotenv>=1.0.0
@@ -21,5 +21,8 @@ requests>=2.31.0
 # Configuration
 PyYAML>=6.0.1
 
-# Development
--e .
+# jupyter kernel
+ipykernel==6.30.1
+
+# setuptools
+setuptools==80.9.0
