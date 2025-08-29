@@ -34,9 +34,8 @@ def main():
         
         # Test queries
         test_queries = [
-            "What are the current interest rates in the US?",
-            "Tell me about Tesla's recent stock performance",
-            "What's the latest news about cryptocurrency market?"
+            "Give me top 5 ipos in India",
+            
         ]
         
         print("\n🔍 Running test queries...")

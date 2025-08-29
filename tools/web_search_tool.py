@@ -39,7 +39,6 @@ class WebSearchTool:
             # Initialize the tool if not already done
             search_tool = TavilySearchResults(
                 api_key=os.getenv("TAVILY_API_KEY"),
-                max_results=5,
                 search_depth="advanced",
                 include_answer=True
             )
