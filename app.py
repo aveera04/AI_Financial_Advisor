@@ -224,7 +224,7 @@ def main():
             <div class="system-info">
                 <h4>✅ System Status: Active</h4>
                 <ul style="color: #ffffff;">
-                    <li><b>🎯 Orchestrator:</b> Qwen/qwen3-32b</li>
+                    <li><b>🎯 Orchestrator:</b> openai/gpt-oss-120b</li>
                     <li><b>📊 IPO Agent:</b> DeepSeek R1</li>
                     <li><b>🔍 Web Search:</b> Tavily API</li>
                 </ul>

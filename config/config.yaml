@@ -6,3 +6,7 @@ llm:
   groq_oss:
     provider: "groq"
     model_name: "openai/gpt-oss-120b"
+
+  groq_oss_20b:
+    provider: "groq"
+    model_name: "openai/gpt-oss-20b"

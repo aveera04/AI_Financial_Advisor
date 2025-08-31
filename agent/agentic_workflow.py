@@ -12,9 +12,9 @@ class IPOAdvisorAgent:
         self.model_loader = ModelLoader(model_provider=model_provider)
         self.llm = self.model_loader.load_llm()
         
-        # IPO-specific tools
+        # IPO-specific tools with enhanced Tavily search
         self.web_search_tool = WebSearchTool()
-        self.tools = self.web_search_tool.get_tools()
+        self.tools = self.web_search_tool.get_tools()  # Gets all 4 tools including new ones
         self.llm_with_tools = self.llm.bind_tools(self.tools)
         self.system_prompt = SYSTEM_PROMPT_IPO
         
@@ -65,9 +65,13 @@ class OrchestratorAgent:
         # Initialize specialized agents with deepseek model
         self.ipo_agent = IPOAdvisorAgent(model_provider="groq_deepseek")
         
-        # Initialize general web search tool
+        # Initialize general web search tool with enhanced capabilities
         self.web_search_tool = WebSearchTool()
-        self.general_search_tools = [self.web_search_tool.search_web]  # Only general search for orchestrator
+        self.general_search_tools = [
+            self.web_search_tool.search_web,
+            self.web_search_tool.tavily_smart_search,
+            self.web_search_tool.tavily_financial_search
+        ]  # Enhanced search tools for orchestrator
         
         # Create tools for the orchestrator to call specialized agents
         self.agent_tools = self._create_agent_tools()
