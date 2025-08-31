@@ -4,7 +4,10 @@ from typing import Literal, Optional, Any
 from pydantic import BaseModel, Field
 from utils.config_loader import load_config
 from langchain_groq import ChatGroq
-from logger import get_logger
+from logger.logger import get_logger
+
+# Load environment variables first
+load_dotenv()
 
 # Setup logger
 logger = get_logger("model_loader")
@@ -18,7 +21,7 @@ class ConfigLoader:
         return self.config[key]
 
 class ModelLoader(BaseModel):
-    model_provider: Literal["groq", "openai"] = "groq"
+    model_provider: Literal["groq_deepseek", "groq_oss", "openai"] = "groq_deepseek"
     config: Optional[ConfigLoader] = Field(default=None, exclude=True)
 
     def model_post_init(self, __context: Any) -> None:
@@ -34,10 +37,10 @@ class ModelLoader(BaseModel):
         logger.info("Loading LLM model")
         logger.debug(f"Loading model from provider: {self.model_provider}")
         
-        if self.model_provider == "groq":
-            logger.debug("Loading LLM from Groq")
+        if self.model_provider in ["groq_deepseek", "groq_oss"]:
+            logger.debug(f"Loading LLM from Groq with config: {self.model_provider}")
             groq_api_key = os.getenv("GROQ_API_KEY")
-            model_name = self.config["llm"]["groq"]["model_name"]
+            model_name = self.config["llm"][self.model_provider]["model_name"]
             logger.info(f"Using Groq model: {model_name}")
             llm = ChatGroq(model=model_name, api_key=groq_api_key)
         # elif self.model_provider == "openai":

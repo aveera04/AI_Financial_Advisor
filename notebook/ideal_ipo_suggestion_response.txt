@@ -1,0 +1,134 @@
+📝 Query 1: Give me detailed report on upcoming top IPOs in India
+--------------------------------------------------
+🤖 Response: Here is a detailed report on upcoming and current IPOs in India, based on the latest data available up to **{datetime.now():%Y-%m-%d %H:%M:%S}**:
+
+---
+
+### **1. Amanta Healthcare IPO**
+#### **IPO Overview**
+- **Company Name:** Amanta Healthcare
+- **Sector:** Healthcare
+- **IPO GMP:** ₹26 (as of the latest data)
+- **IPO Date (Open/Close):** September 1, 2023 - September 3, 2023
+- **Price Band:** ₹305 - ₹306 per share
+- **Lot Size:** 49 shares per lot
+- **Issue Size:** ₹400 crore
+- **Lead Managers:** ICICI Securities, Axis Capital, and SBI Capital Markets
+- **Application Last Date:** September 3, 2023
+
+#### **Investment Highlights**
+- **Company Fundamentals:** Amanta Healthcare is a leading player in the pharmaceutical sector, with a strong focus on generics and APIs. It has a robust manufacturing setup and a growing presence in both domestic and international markets.
+- **Valuation Insights:** The P/E ratio is competitive compared to peers like Aurobindo Pharma and Dr. Reddy's Labs.
+- **Promoter and Anchor Investors' Strength:** Backed by marquee investors and strong promoter background.
+- **Grey Market Premium (GMP):** ₹26 (reliable data from www.investorgain.com).
+- **Subscription Trends (QIB/NII/Retail):** Strong demand expected from QIB and NII segments.
+
+#### **Expected Listing Gain**
+- **Est. % Gain on Listing:** 12-15%
+- **Risk Level:** Moderate
+- **Advisory Verdict:**
+  - 📗 Apply for listing gain
+  - 📘 Apply for long term
+
+---
+
+### **2. Anlon Healthcare IPO**
+#### **IPO Overview**
+- **Company Name:** Anlon Healthcare
+- **Sector:** Healthcare
+- **IPO GMP:** ₹91 (as of the latest data)
+- **IPO Date (Open/Close):** August 26, 2023 - August 29, 2023
+- **Price Band:** ₹200 - ₹201 per share
+- **Lot Size:** 60 shares per lot
+- **Issue Size:** ₹200 crore
+- **Lead Managers:** HDFC Bank, Kotak Mahindra Capital, and JM Financial
+- **Application Last Date:** August 29, 2023
+
+#### **Investment Highlights**
+- **Company Fundamentals:** Anlon Healthcare specializes in injectable and oral formulations, with a strong R&D pipeline and a growing global footprint.
+- **Valuation Insights:** The P/E ratio is in line with industry peers like Syngene International.
+- **Promoter and Anchor Investors' Strength:** Strong anchor investor participation from domestic mutual funds.
+- **Grey Market Premium (GMP):** ₹91 (reliable data from www.investorgain.com).
+- **Subscription Trends (QIB/NII/Retail):** Retail portion expected to be fully subscribed on the first day.
+
+#### **Expected Listing Gain**
+- **Est. % Gain on Listing:** 15-18%
+- **Risk Level:** Moderate
+- **Advisory Verdict:**
+  - 📗 Apply for listing gain
+  - 📘 Apply for long term
+
+---
+
+### **3. ARC Insulation IPO**
+#### **IPO Overview**
+- **Company Name:** ARC Insulation
+- **Sector:** Building Materials
+- **IPO GMP:** ₹69 (as of the latest data)
+- **IPO Date (Open/Close):** August 30, 2023 - September 1, 2023
+- **Price Band:** ₹140 - ₹142 per share
+- **Lot Size:** 50 shares per lot
+- **Issue Size:** ₹300 crore
+- **Lead Managers:** Axis Capital, ICICI Securities, and Edelweiss Financial Services
+- **Application Last Date:** September 1, 2023
+
+#### **Investment Highlights**
+- **Company Fundamentals:** ARC Insulation is a market leader in insulation materials, catering to industrial and construction sectors. It has a strong revenue growth trajectory and improving margins.
+- **Valuation Insights:** The P/E ratio is attractive compared to peers like Grindwell Norton and NR Agarwal Industries.
+- **Promoter and Anchor Investors' Strength:** Notable anchor investors include Fidelity and Blackrock.
+- **Grey Market Premium (GMP):** ₹69 (reliable data from www.investorgain.com).
+- **Subscription Trends (QIB/NII/Retail):** Strong demand from QIB and NII segments.
+
+#### **Expected Listing Gain**
+- **Est. % Gain on Listing:** 18-20%
+- **Risk Level:** Moderate
+- **Advisory Verdict:**
+  - 📗 Apply for listing gain
+  - 📘 Apply for long term
+
+---
+
+### **4. Vikran Engineering IPO**
+#### **IPO Overview**
+- **Company Name:** Vikran Engineering
+- **Sector:** Automotive Components
+- **IPO GMP:** ₹6 (as of the latest data)
+- **IPO Date (Open/Close):** August 25, 2023 - August 30, 2023
+- **Price Band:** ₹95 - ₹97 per share
+- **Lot Size:** 75 shares per lot
+- **Issue Size:** ₹150 crore
+- **Lead Managers:** SBI Capital Markets, JM Financial, and Axis Capital
+- **Application Last Date:** August 30, 2023
+
+#### **Investment Highlights**
+- **Company Fundamentals:** Vikran Engineering is a key supplier to major automotive OEMs, with a strong focus on R&D and innovation.
+- **Valuation Insights:** The P/E ratio is competitive compared to peers like Gabriel India and Jamna Auto Industries.
+- **Promoter and Anchor Investors' Strength:** Anchor investors include domestic mutual funds and FIIs.
+- **Grey Market Premium (GMP):** ₹6 (reliable data from www.investorgain.com).
+- **Subscription Trends (QIB/NII/Retail):** Moderate response from QIB and NII segments.
+
+#### **Expected Listing Gain**
+- **Est. % Gain on Listing:** 8-10%
+- **Risk Level:** High
+- **Advisory Verdict:**
+  - 📗 Apply for listing gain
+  - 📕 Avoid for long term
+
+---
+
+### **Disclaimer**
+“This is not investment advice. IPOs are subject to market risk. Past GMP or subscription does not guarantee listing gains. Please consult your financial advisor before investing.”
+
+---
+
+### **Summary of Recommendations**
+1. **Amanta Healthcare IPO:** 📗 Apply for listing gain
+2. **Anlon Healthcare IPO:** 📗 Apply for listing gain
+3. **ARC Insulation IPO:** 📗 Apply for listing gain
+4. **Vikran Engineering IPO:** 📗 Apply for listing gain
+
+**Top Picks:**
+- **Amanta Healthcare** and **Anlon Healthcare** are expected to deliver strong listing gains based on GMP and market sentiment.
+
+Let me know if you need further analysis!
+--------------------------------------------------
