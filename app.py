@@ -6,13 +6,60 @@ Simple chatbot interface to interact with the orchestrator system
 
 import streamlit as st
 import time
+import re
 from datetime import datetime
 from agent.agentic_workflow import OrchestratorAgent
+from utils.config_loader import load_config
 from dotenv import load_dotenv
 import os
 
 # Load environment variables
 load_dotenv()
+
+def get_model_info():
+    """Get detailed model information from config"""
+    try:
+        config = load_config()
+        return {
+            "groq_oss": {
+                "model_name": config["llm"]["groq_oss"]["model_name"],
+                "provider": "Groq",
+                "api_key": "GROQ_API_KEY"
+            },
+            "groq_deepseek": {
+                "model_name": config["llm"]["groq_deepseek"]["model_name"], 
+                "provider": "Groq",
+                "api_key": "GROQ_API_KEY"
+            },
+            "groq_oss_20b": {
+                "model_name": config["llm"]["groq_oss_20b"]["model_name"],
+                "provider": "Groq", 
+                "api_key": "GROQ_API_KEY"
+            },
+            "gemini_2.5_pro": {
+                "model_name": config["llm"]["gemini_2.5_pro"]["model_name"],
+                "provider": "Google",
+                "api_key": "GEMINI_API_KEY"
+            }
+        }
+    except Exception as e:
+        st.error(f"Error loading model config: {e}")
+        return {}
+
+def format_response_with_links(response):
+    """Convert citation patterns to clickable links"""
+    # Pattern to match citations like 【1†L1-L3】, 【2†source】, etc.
+    citation_pattern = r'【(\d+)†([^】]+)】'
+    
+    def replace_citation(match):
+        citation_num = match.group(1)
+        source_info = match.group(2)
+        return f'<sup><a href="#citation-{citation_num}" style="color: #4fc3f7; text-decoration: none;">[{citation_num}]</a></sup>'
+    
+    # Replace citations with clickable links
+    formatted_response = re.sub(citation_pattern, replace_citation, response)
+    
+    return formatted_response
 
 # Page configuration
 st.set_page_config(
@@ -155,15 +202,57 @@ def initialize_system():
     """Initialize the multi-agent system"""
     try:
         # Check API keys
-        if not os.getenv("GROQ_API_KEY") or not os.getenv("TAVILY_API_KEY"):
-            st.error("❌ Missing API keys! Please set GROQ_API_KEY and TAVILY_API_KEY in your .env file")
+        required_keys = ["GROQ_API_KEY", "TAVILY_API_KEY"]
+        missing_keys = [key for key in required_keys if not os.getenv(key)]
+        
+        if missing_keys:
+            st.error(f"❌ Missing API keys: {', '.join(missing_keys)}! Please set them in your .env file")
             return False
         
         with st.spinner("🤖 Initializing AI Financial Advisor System..."):
-            st.session_state.orchestrator = OrchestratorAgent(model_provider="groq_oss")
+            # Get model info for display
+            model_info = get_model_info()
+            
+            st.session_state.orchestrator = OrchestratorAgent(model_provider="groq_oss", api_key_name="GROQ_API_KEY")
             st.session_state.system_initialized = True
+            st.session_state.model_info = model_info
             
         st.success("✅ AI Financial Advisor System initialized successfully!")
+        
+        # Display detailed model information
+        with st.expander("🔧 System Architecture Details", expanded=False):
+            if model_info:
+                st.markdown("### 🤖 Active Models Configuration")
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.markdown("#### 🎯 Orchestrator")
+                    orch_info = model_info.get("groq_oss", {})
+                    st.code(f"""
+Provider: {orch_info.get('provider', 'N/A')}
+Model: {orch_info.get('model_name', 'N/A')}
+API Key: {orch_info.get('api_key', 'N/A')}
+                    """)
+                
+                with col2:
+                    st.markdown("#### 📊 IPO Agent")
+                    ipo_info = model_info.get("groq_deepseek", {})
+                    st.code(f"""
+Provider: {ipo_info.get('provider', 'N/A')}
+Model: {ipo_info.get('model_name', 'N/A')}
+API Key: {ipo_info.get('api_key', 'N/A')}
+                    """)
+                
+                with col3:
+                    st.markdown("#### 📈 Stock Agent")
+                    stock_info = model_info.get("gemini_2.5_pro", {})
+                    st.code(f"""
+Provider: {stock_info.get('provider', 'N/A')}
+Model: {stock_info.get('model_name', 'N/A')}
+API Key: {stock_info.get('api_key', 'N/A')}
+                    """)
+        
         return True
         
     except Exception as e:
@@ -178,19 +267,31 @@ def get_response(query):
             response = st.session_state.orchestrator.run(query)
             processing_time = time.time() - start_time
             
-            # Determine which agent/tool was used
+            # Enhanced agent detection with model info
+            model_info = st.session_state.get("model_info", {})
+            
             if "IPO Advisor Response:" in response:
-                agent_used = "📊 IPO Advisor Agent (DeepSeek)"
+                ipo_model = model_info.get("groq_deepseek", {}).get("model_name", "deepseek-r1")
+                agent_used = f"📊 IPO Agent ({ipo_model})"
                 route_info = "Specialized IPO Analysis"
-            elif "Search Results" in response or "search_web" in response.lower():
+            elif "Stock Advisor Response:" in response:
+                stock_model = model_info.get("gemini_2.5_pro", {}).get("model_name", "gemini-2.5-pro")
+                agent_used = f"📈 Stock Agent ({stock_model})"
+                route_info = "Comprehensive Stock Analysis"
+            elif any(keyword in response.lower() for keyword in ["search results", "search_web", "tavily"]):
                 agent_used = "🔍 Web Search Tool (Tavily)"
                 route_info = "General Market Research"
             else:
-                agent_used = "🎯 Orchestrator (Qwen)"
+                orch_model = model_info.get("groq_oss", {}).get("model_name", "gpt-oss-120b")
+                agent_used = f"🎯 Orchestrator ({orch_model})"
                 route_info = "Direct Response"
             
+            # Format response with clickable links
+            formatted_response = format_response_with_links(response)
+            
             return {
-                "response": response,
+                "response": formatted_response,
+                "original_response": response,
                 "agent_used": agent_used,
                 "route_info": route_info,
                 "processing_time": processing_time
@@ -198,6 +299,7 @@ def get_response(query):
     except Exception as e:
         return {
             "response": f"❌ Error: {str(e)}",
+            "original_response": f"❌ Error: {str(e)}",
             "agent_used": "❌ System Error",
             "route_info": "Error occurred",
             "processing_time": 0
@@ -211,7 +313,7 @@ def main():
     st.markdown("""
     <div class="main-header">
         <h1>🤖 AI Financial Advisor</h1>
-        <p>Multi-Agent System with Qwen Orchestrator & DeepSeek IPO Specialist</p>
+        <p>Multi-Agent System with Orchestrator & IPO , Stock Specialist</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -226,6 +328,7 @@ def main():
                 <ul style="color: #ffffff;">
                     <li><b>🎯 Orchestrator:</b> openai/gpt-oss-120b</li>
                     <li><b>📊 IPO Agent:</b> DeepSeek R1</li>
+                    <li><b>📈 Stock Agent:</b> gemini 2.5 pro</li>
                     <li><b>🔍 Web Search:</b> Tavily API</li>
                 </ul>
             </div>
@@ -278,22 +381,33 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         else:
+            # Display formatted response with clickable links
+            formatted_content = message.get("formatted_content", message["content"])
             st.markdown(f"""
             <div class="chat-message assistant-message">
                 <b style="color: #ffffff;">🤖 AI Advisor:</b><br>
-                <span style="color: #ffffff;">{message["content"]}</span>
+                <span style="color: #ffffff;">{formatted_content}</span>
             </div>
             """, unsafe_allow_html=True)
             
-            # Show agent info if available
+            # Show enhanced agent info if available
             if "agent_info" in message:
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.info(f"**Agent Used:** {message['agent_info']['agent_used']}")
+                    st.info(f"**Agent:** {message['agent_info']['agent_used']}")
                 with col2:
                     st.info(f"**Route:** {message['agent_info']['route_info']}")
                 with col3:
                     st.info(f"**Time:** {message['agent_info']['processing_time']:.2f}s")
+                    
+                # Add model details expander
+                with st.expander("🔧 Technical Details", expanded=False):
+                    st.code(f"""
+Agent: {message['agent_info']['agent_used']}
+Route: {message['agent_info']['route_info']}
+Processing Time: {message['agent_info']['processing_time']:.3f}s
+Response Length: {len(message.get('original_content', message['content']))} characters
+                    """)
     
     # Chat input
     if prompt := st.chat_input("Ask me about IPOs, stock market trends, investment advice..."):

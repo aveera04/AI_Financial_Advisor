@@ -1,0 +1,95 @@
+AI FINANCIAL ADVISOR - CORRECTED AGENT WORKFLOW DIAGRAM WITH ENHANCED TAVILY TOOLS
+================================================================================
+
+📱 USER QUERY
+    |
+    v
+🎯 ORCHESTRATOR AGENT (llama3-70b-8192)
+    |
+    v
+🔀 QUERY ROUTING & TOOL SELECTION
+    |
+    ├── 🔍 search_web (AI-optimized general search)
+    |     |
+    |     └── 📄 Formatted Search Data → 🧠 Orchestrator LLM Processing → 📄 Final Response
+    |
+    ├── 🧠 tavily_smart_search (Context-aware search)
+    |     |
+    |     └── 📄 Formatted Search Data → 🧠 Orchestrator LLM Processing → 📄 Final Response
+    |
+    ├── 💰 tavily_financial_search (Financial market search)
+    |     |
+    |     └── 📄 Formatted Search Data → 🧠 Orchestrator LLM Processing → 📄 Final Response
+    |
+    └── 📊 ipo_advisor_agent (Route to IPO specialist)
+          |
+          v
+      📊 IPO ADVISOR AGENT (deepseek-r1-distill-llama-70b)
+          |
+          v
+      🔀 IPO TOOL SELECTION
+          |
+          └──  search_ipo_info (AI-optimized IPO search)
+                |
+                v
+              🤖 AI Query Generator (Optimizes search query)
+                |
+                v
+              🔍 Tavily Search Results (Raw data from API)
+                |
+                v
+              📋 Formatted Data (Processed & structured)
+                |
+                v
+              🧠 IPO Agent LLM Processing (Analyzes formatted data)
+                |
+                v
+              📄 Final Response
+
+================================================================================
+🔧 CORRECTED WORKFLOW EXPLANATION:
+================================================================================
+
+❌ WRONG (Previous): Tool → Final Response
+✅ CORRECT (Now): Tool → Formatted Data → Agent LLM → Final Response
+
+🔄 ACTUAL DATA FLOW:
+
+1. 🔍 SEARCH TOOLS:
+   - Get raw results from Tavily API
+   - Process and format the search results  
+   - Return structured data back to agent
+
+2. 🧠 AGENT LLM PROCESSING:
+   - Receives formatted search data
+   - Analyzes information using LLM
+   - Generates comprehensive response
+   - Returns final answer to user
+
+3. 📊 EXAMPLE FLOW:
+   User: "What's the GMP of XYZ IPO?"
+     ↓
+   Orchestrator → Routes to IPO Agent  
+     ↓
+   IPO Agent → Calls search_ipo_info
+     ↓
+   search_ipo_info → AI optimizes query → Gets Tavily results
+     ↓
+   Formats results → Returns data to IPO Agent
+     ↓
+   IPO Agent LLM → Processes data → Generates response
+     ↓
+   Final Response to User
+
+================================================================================
+📊 STATISTICS:
+================================================================================
+• Total Agents: 2 (Orchestrator + IPO Advisor)
+• Total Tools: Orchestrator Agent - 4 tools; IPO Advisor Agent - 1 tool (5 total tool instances)  
+• Processing Steps: 2 (Tool Processing + Agent LLM Processing)
+• Data Flow: Tool → Formatted Data → LLM → Response
+• AI Enhancement Points: Query optimization, data formatting, response generation
+
+🎯 KEY CORRECTION:
+Tools don't directly generate final responses - they provide processed data
+that agents use to create intelligent, contextual responses through LLM processing.

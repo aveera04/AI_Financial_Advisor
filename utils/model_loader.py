@@ -21,28 +21,37 @@ class ConfigLoader:
         return self.config[key]
 
 class ModelLoader(BaseModel):
-    model_provider: Literal["groq_deepseek", "groq_oss", "openai"] = "groq_deepseek"
+    model_provider: Literal["groq_deepseek", "groq_oss", "groq_oss_20b", "gemini_2.5_pro"] = "groq_deepseek"
+    api_key: str = Field(..., description="API key for the model provider")  # Mandatory parameter
+    api_key_source: Optional[str] = Field(default=None, description="Source of the API key")
     config: Optional[ConfigLoader] = Field(default=None, exclude=True)
 
     def model_post_init(self, __context: Any) -> None:
         self.config = ConfigLoader()
+        # Validate that api_key is provided
+        if not self.api_key:
+            raise ValueError("API key is mandatory and cannot be empty")
     
     class Config:
         arbitrary_types_allowed = True
     
     def load_llm(self):
         """
-        Load and return the LLM model.
+        Load and return the LLM model with specified API key.
         """
         logger.info("Loading LLM model")
         logger.debug(f"Loading model from provider: {self.model_provider}")
-        
-        if self.model_provider in ["groq_deepseek", "groq_oss"]:
-            logger.debug(f"Loading LLM from Groq with config: {self.model_provider}")
-            groq_api_key = os.getenv("GROQ_API_KEY")
+
+        # Show both the source and masked key
+        if self.api_key_source:
+            logger.debug(f"Using API key from: {self.api_key_source}")
+        logger.debug(f"API key value: {self.api_key[:8]}...{self.api_key[-4:] if len(self.api_key) > 12 else 'short_key'}")
+
+        if self.model_provider in ["groq_deepseek", "groq_oss", "groq_oss_20b", "gemini_2.5_pro"]:
+            logger.debug(f"Loading LLM with config: {self.model_provider}")
             model_name = self.config["llm"][self.model_provider]["model_name"]
-            logger.info(f"Using Groq model: {model_name}")
-            llm = ChatGroq(model=model_name, api_key=groq_api_key)
+            logger.info(f"Using model: {model_name} with provided API key")
+            llm = ChatGroq(model=model_name, api_key=self.api_key)
         # elif self.model_provider == "openai":
         #     logger.debug("Loading LLM from OpenAI")
         #     openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -56,3 +65,39 @@ class ModelLoader(BaseModel):
         
         return llm
     
+    @classmethod
+    def from_env_key(cls, model_provider: str, env_key_name: str):
+        """
+        Convenience method to create ModelLoader using environment variable.
+        
+        Usage:
+            loader = ModelLoader.from_env_key("groq_oss", "GROQ_API_KEY")
+            loader = ModelLoader.from_env_key("groq_search_20b", "GROQ_API_KEY_2")
+        """
+        api_key = os.getenv(env_key_name)
+        if not api_key:
+            raise ValueError(f"Environment variable {env_key_name} is not set")
+        
+        logger.info(f"Creating ModelLoader with API key from: {env_key_name}")
+        # Pass the environment variable name as source
+        return cls(
+            model_provider=model_provider, 
+            api_key=api_key,
+            api_key_source=env_key_name  # Track the source
+        )
+    
+    def get_model_info(self) -> dict:
+        """
+        Get model information including provider, model name, and API key source.
+        """
+        if not self.config:
+            self.config = ConfigLoader()
+            
+        model_config = self.config["llm"][self.model_provider]
+        
+        return {
+            "provider": model_config.get("provider", "Unknown"),
+            "model_name": model_config.get("model_name", "Unknown"),
+            "api_key_source": self.api_key_source or "Direct",
+            "model_provider": self.model_provider
+        }

@@ -4,9 +4,17 @@ llm:
     model_name: "deepseek-r1-distill-llama-70b"
 
   groq_oss:
-    provider: "groq"
+    provider: "groq_oss"
     model_name: "openai/gpt-oss-120b"
 
   groq_oss_20b:
-    provider: "groq"
+    provider: "groq_oss_20b"
     model_name: "openai/gpt-oss-20b"
+
+  gemini_2.5_pro:
+    provider: "gemini"
+    model_name: "models/gemini-2.5-pro"
+
+  groq_lamma_8b_instant:
+    provider: "groq"
+    model_name: "lamma-8b-instant"
