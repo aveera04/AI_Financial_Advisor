@@ -19,11 +19,10 @@ def cleanup():
         try:
             process.terminate()
             process.wait(timeout=5)
-        except:
-            try:
-                process.kill()
-            except:
-                pass
+        except subprocess.TimeoutExpired:
+            process.kill()
+        except (OSError, AttributeError):
+            pass
 
 def main():
     """Launch the React frontend with FastAPI backend"""
@@ -58,8 +57,9 @@ def main():
         # Check if backend started successfully
         if backend_process.poll() is not None:
             print("❌ Backend failed to start!")
-            print("Please check that all dependencies are installed:")
+            print("Please check that Python dependencies are installed:")
             print("  pip install -r requirements.txt")
+            print("And verify your API keys are set in the .env file")
             return
         
         print("✅ Backend server started")

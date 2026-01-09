@@ -20,8 +20,10 @@ def cleanup():
         try:
             process.terminate()
             process.wait(timeout=5)
-        except:
+        except subprocess.TimeoutExpired:
             process.kill()
+        except (OSError, AttributeError):
+            pass
 
 def main():
     """Launch the application"""
