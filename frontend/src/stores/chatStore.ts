@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Chat, ChatMessage, SessionSettings, AuditLogEntry } from '@/types/chat';
+import { apiService } from '@/services/api';
 
 interface ChatState {
   chats: Chat[];
@@ -11,7 +12,7 @@ interface ChatState {
   isInitialized: boolean;
   
   // Actions
-  initializeSession: () => void;
+  initializeSession: () => Promise<void>;
   createNewChat: () => string;
   loadChat: (chatId: string) => void;
   clearCurrentChat: () => void;
@@ -45,13 +46,21 @@ export const useChatStore = create<ChatState>()(
       auditLog: [],
       isInitialized: false,
 
-      initializeSession: () => {
-        const chatId = get().createNewChat();
-        set({
-          isInitialized: true,
-          sessionStartTime: new Date(),
-          currentChatId: chatId,
-        });
+      initializeSession: async () => {
+        try {
+          // Call API to initialize the backend
+          await apiService.initialize();
+          
+          const chatId = get().createNewChat();
+          set({
+            isInitialized: true,
+            sessionStartTime: new Date(),
+            currentChatId: chatId,
+          });
+        } catch (error) {
+          console.error('Failed to initialize session:', error);
+          throw error;
+        }
       },
 
       createNewChat: () => {
