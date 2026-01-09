@@ -37,6 +37,7 @@ export function Sidebar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const recentChats = chats
     .filter(chat => 
@@ -70,6 +71,18 @@ export function Sidebar() {
     URL.revokeObjectURL(url);
   };
 
+  const handleInitialize = async () => {
+    setIsInitializing(true);
+    try {
+      await initializeSession();
+    } catch (error) {
+      console.error('Failed to initialize:', error);
+      // You might want to show a toast notification here
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
   return (
     <aside 
       className="flex h-full w-64 flex-col border-r border-border bg-sidebar"
@@ -79,13 +92,14 @@ export function Sidebar() {
       {/* Initialize Button */}
       <div className="p-4">
         <Button
-          onClick={initializeSession}
+          onClick={handleInitialize}
           className="w-full gap-2"
           variant={isInitialized ? "secondary" : "default"}
           aria-label="Initialize new session"
+          disabled={isInitializing}
         >
           <Play className="h-4 w-4" />
-          {isInitialized ? 'New Session' : 'Initialize'}
+          {isInitializing ? 'Initializing...' : (isInitialized ? 'New Session' : 'Initialize')}
         </Button>
       </div>
 
