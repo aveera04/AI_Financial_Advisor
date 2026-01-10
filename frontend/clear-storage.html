@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Storage</title>
+</head>
+<body>
+    <h1>Clearing Browser Storage...</h1>
+    <p id="status">Processing...</p>
+    <script>
+        // Clear all storage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear IndexedDB
+        if (window.indexedDB) {
+            indexedDB.databases().then(databases => {
+                databases.forEach(db => {
+                    indexedDB.deleteDatabase(db.name);
+                });
+            });
+        }
+        
+        document.getElementById('status').innerHTML = `
+            <p style="color: green;">✅ Storage cleared successfully!</p>
+            <p>LocalStorage keys removed: All</p>
+            <p>SessionStorage keys removed: All</p>
+            <p>IndexedDB cleared: Yes</p>
+            <br>
+            <p><strong>Now refresh the main app at <a href="http://localhost:8080">http://localhost:8080</a></strong></p>
+        `;
+        
+        console.log('✅ All storage cleared');
+    </script>
+</body>
+</html>

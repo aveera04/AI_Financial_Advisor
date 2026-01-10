@@ -20,7 +20,7 @@ class TavilyStockInfoSearch:
         
         # Initialize LLM for intelligent query generation (uses separate API key)
         try:
-            self.query_generator = ModelLoader(model_provider="groq_lamma_8b_instant", api_key_source="GROQ_API_KEY_2").load_llm()
+            self.query_generator = ModelLoader.from_env_key("groq_oss_20b", "GROQ_API_KEY_2").load_llm()
         except Exception as e:
             print(f"Warning: Could not initialize query generator: {e}")
             self.query_generator = None

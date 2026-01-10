@@ -110,7 +110,7 @@ class StockAdvisorAgent:
 
 class OrchestratorAgent:
     """Main orchestrator agent that routes queries to specialized agents"""
-    def __init__(self, model_provider: str = "groq_oss_120b", api_key_name: str = "GROQ_API_KEY"):
+    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY"):
         # Initialize LLM for orchestrator
         self.model_loader = ModelLoader.from_env_key(model_provider, api_key_name)
         self.llm = self.model_loader.load_llm()
