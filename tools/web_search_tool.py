@@ -169,36 +169,42 @@ class WebSearchTool:
         return [self.tavily_smart_search, self.tavily_financial_search]
     
     def get_stock_tools(self):
-        """Return stock-specific search tools"""
+        """Return stock-specific search tools.
+        NOTE: standalone functions are imported lazily to avoid forward-reference issues.
+        """
+        from tools.stock_web_search_tool import (
+            search_stock_performance,
+            search_stock_news,
+            search_stock_analysis,
+            search_stock_recommendations,
+        )
         return [
             self.tavily_smart_search,
             self.tavily_financial_search,
-            search_stock_performance,  # Use the function directly
+            search_stock_performance,
             search_stock_news,
             search_stock_analysis,
-            search_stock_recommendations
+            search_stock_recommendations,
         ]
-    
+
     def get_tools(self):
-        """Return all available tools"""
+        """Return all available tools."""
+        from tools.stock_web_search_tool import (
+            search_stock_performance,
+            search_stock_news,
+            search_stock_analysis,
+            search_stock_recommendations,
+        )
         return [
             self.search_web,
             self.search_ipo_info,
             self.tavily_smart_search,
             self.tavily_financial_search,
-            search_stock_performance,  # Use the function directly
+            search_stock_performance,
             search_stock_news,
             search_stock_analysis,
-            search_stock_recommendations
+            search_stock_recommendations,
         ]
-    
-    # Late binding of stock search functions
-    def __post_init__(self):
-        """Bind stock search functions after they are defined"""
-        self.search_stock_performance = search_stock_performance
-        self.search_stock_news = search_stock_news
-        self.search_stock_analysis = search_stock_analysis  
-        self.search_stock_recommendations = search_stock_recommendations
 
 # Stock Performance Search Tool
 @tool
@@ -249,50 +255,44 @@ def search_stock_performance(query: str) -> str:
         return f"Error searching stock performance: {str(e)}"
 
 # Stock News Search Tool
-@tool  
+@tool
 def search_stock_news(query: str) -> str:
     """
     Search for latest stock news, announcements, and market updates.
-    
+
     Args:
         query (str): Stock news query (e.g., "TATA Motors latest news", "banking sector updates")
-        
+
     Returns:
         str: Formatted stock news with latest updates and market sentiment
     """
     try:
-        # Initialize the stock search utility
         search_tool = TavilyStockInfoSearch()
-        results = search_tool.search_stock_news(query)
-        
-        if results["status"] == "failed":
-            return f"❌ Stock news search failed: {results.get('error', 'Unknown error')}"
-        
-        # Format the results for better readability
-        formatted_results = f"📰 STOCK NEWS & UPDATES\n"
-        formatted_results += f"Query: '{query}'\n"
-        formatted_results += f"News Search: '{results['optimized_query']}'\n"
-        formatted_results += "="*60 + "\n\n"
-        
-        if isinstance(results['results'], dict) and 'results' in results['results']:
-            for i, result in enumerate(results['results']['results'][:8], 1):
-                title = result.get('title', 'No title')
-                url = result.get('url', 'No URL')
-                content = result.get('content', 'No content available')
-                
-                formatted_results += f"🗞️ News #{i}\n"
-                formatted_results += f"Headline: {title}\n"
-                formatted_results += f"Source: {url}\n"
-                formatted_results += f"Summary: {content[:250]}...\n"
-                formatted_results += "─"*50 + "\n\n"
-        elif isinstance(results['results'], list):
-            for i, result in enumerate(results['results'][:8], 1):
-                formatted_results += f"🗞️ News #{i}: {str(result)}\n\n"
+        raw = search_tool.search_stock_news_events(query)  # returns raw Tavily list/dict
+
+        formatted = f"📰 STOCK NEWS & UPDATES\nQuery: '{query}'\n" + "="*60 + "\n\n"
+
+        # Normalise to a list of result items
+        if isinstance(raw, list):
+            items = raw
+        elif isinstance(raw, dict):
+            if 'answer' in raw:
+                formatted += f"📋 Summary: {raw['answer']}\n\n"
+            items = raw.get('results', [])
         else:
-            formatted_results += f"News Data: {str(results['results'])}\n"
-        
-        return formatted_results
-        
+            return formatted + f"News Data: {str(raw)[:500]}\n"
+
+        for i, result in enumerate(items[:8], 1):
+            if isinstance(result, dict):
+                formatted += f"🗞️ News #{i}\n"
+                formatted += f"Headline: {result.get('title', 'No title')}\n"
+                formatted += f"Source: {result.get('url', 'No URL')}\n"
+                formatted += f"Summary: {result.get('content', '')[:250]}...\n"
+                formatted += "─"*50 + "\n\n"
+            else:
+                formatted += f"🗞️ News #{i}: {str(result)}\n\n"
+
+        return formatted
     except Exception as e:
         return f"Error searching stock news: {str(e)}"
 
@@ -301,46 +301,40 @@ def search_stock_news(query: str) -> str:
 def search_stock_analysis(query: str) -> str:
     """
     Search for detailed stock analysis, technical charts, and expert opinions.
-    
+
     Args:
         query (str): Stock analysis query (e.g., "HDFC Bank technical analysis", "IT sector fundamental analysis")
-        
+
     Returns:
         str: Formatted stock analysis with expert insights and technical data
     """
     try:
-        # Initialize the stock search utility
         search_tool = TavilyStockInfoSearch()
-        results = search_tool.search_stock_analysis(query)
-        
-        if results["status"] == "failed":
-            return f"❌ Stock analysis search failed: {results.get('error', 'Unknown error')}"
-        
-        # Format the results for better readability
-        formatted_results = f"📊 STOCK ANALYSIS & INSIGHTS\n"
-        formatted_results += f"Query: '{query}'\n"
-        formatted_results += f"Analysis Search: '{results['optimized_query']}'\n"
-        formatted_results += "="*60 + "\n\n"
-        
-        if isinstance(results['results'], dict) and 'results' in results['results']:
-            for i, result in enumerate(results['results']['results'][:5], 1):
-                title = result.get('title', 'No title')
-                url = result.get('url', 'No URL')
-                content = result.get('content', 'No content available')
-                
-                formatted_results += f"🔍 Analysis #{i}\n"
-                formatted_results += f"Title: {title}\n"
-                formatted_results += f"Source: {url}\n"
-                formatted_results += f"Expert View: {content[:350]}...\n"
-                formatted_results += "─"*50 + "\n\n"
-        elif isinstance(results['results'], list):
-            for i, result in enumerate(results['results'][:5], 1):
-                formatted_results += f"🔍 Analysis #{i}: {str(result)}\n\n"
+        raw = search_tool.search_fundamental_analysis(query)  # returns raw Tavily list/dict
+
+        formatted = f"📊 STOCK ANALYSIS & INSIGHTS\nQuery: '{query}'\n" + "="*60 + "\n\n"
+
+        # Normalise to a list of result items
+        if isinstance(raw, list):
+            items = raw
+        elif isinstance(raw, dict):
+            if 'answer' in raw:
+                formatted += f"📋 Summary: {raw['answer']}\n\n"
+            items = raw.get('results', [])
         else:
-            formatted_results += f"Analysis Data: {str(results['results'])}\n"
-        
-        return formatted_results
-        
+            return formatted + f"Analysis Data: {str(raw)[:500]}\n"
+
+        for i, result in enumerate(items[:5], 1):
+            if isinstance(result, dict):
+                formatted += f"🔍 Analysis #{i}\n"
+                formatted += f"Title: {result.get('title', 'No title')}\n"
+                formatted += f"Source: {result.get('url', 'No URL')}\n"
+                formatted += f"Expert View: {result.get('content', '')[:350]}...\n"
+                formatted += "─"*50 + "\n\n"
+            else:
+                formatted += f"🔍 Analysis #{i}: {str(result)}\n\n"
+
+        return formatted
     except Exception as e:
         return f"Error searching stock analysis: {str(e)}"
 
@@ -562,13 +556,13 @@ def get_web_search_tool() -> WebSearchTool:
     """
     Get or create singleton WebSearchTool instance.
     This avoids expensive re-initialization on every tool call.
-    
+
     Returns:
         WebSearchTool: Cached singleton instance
     """
     global _web_search_tool_instance
     if _web_search_tool_instance is None:
-        _web_search_tool_instance = WebSearchTool(use_optimized=True)
+        _web_search_tool_instance = WebSearchTool()  # no extra args — __init__ takes none
     return _web_search_tool_instance
 
 def reset_web_search_tool():

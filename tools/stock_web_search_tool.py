@@ -26,54 +26,52 @@ class StockWebSearchTool:
         # Initialize the stock search utility
         self.stock_search_utility = TavilyStockInfoSearch(self.api_key)
     
-    def _format_search_results(self, results: dict, search_type: str) -> str:
+    def _format_search_results(self, results, search_type: str) -> str:
         """
-        Format search results for better readability in agent responses
+        Format raw Tavily search results for better readability in agent responses.
+        Handles both list and dict response formats from TavilySearch.
         
         Args:
-            results (dict): Raw search results from utility
+            results: Raw Tavily results (list of dicts, or dict with 'results' key)
             search_type (str): Type of search performed
             
         Returns:
             str: Formatted results string
         """
-        if results["status"] == "failed":
-            return f"❌ {search_type.title()} search failed: {results.get('error', 'Unknown error')}"
-        
-        # Format successful results
+        # Handle error dict returned by the search wrapper
+        if isinstance(results, dict) and 'error' in results and 'results' not in results:
+            return f"❌ {search_type.title()} search failed: {results['error']}"
+
         formatted_results = f"📊 **{search_type.upper()} SEARCH RESULTS**\n"
-        formatted_results += f"🔍 Query: '{results['original_query']}'\n"
-        formatted_results += f"🎯 Optimized: '{results['optimized_query']}'\n"
         formatted_results += "="*60 + "\n\n"
-        
-        # Process results based on type
-        search_results = results.get('results', {})
-        
-        if isinstance(search_results, dict):
-            # Handle Tavily response format
-            if 'answer' in search_results:
-                formatted_results += f"📋 **Summary**: {search_results['answer']}\n\n"
-            
-            if 'results' in search_results:
-                sources = search_results['results'][:5]  # Limit to top 5 sources
-                for i, source in enumerate(sources, 1):
-                    title = source.get('title', 'No title')
-                    url = source.get('url', 'No URL')
-                    content = source.get('content', 'No content available')
-                    
-                    formatted_results += f"🔗 **Source {i}**: {title}\n"
-                    formatted_results += f"🌐 URL: {url}\n"
-                    formatted_results += f"📄 Content: {content[:300]}...\n"
-                    formatted_results += "-" * 40 + "\n\n"
+
+        # Normalise: extract the list of result items regardless of format
+        if isinstance(results, list):
+            items = results
+        elif isinstance(results, dict):
+            # Tavily sometimes returns {'answer': '...', 'results': [...]}
+            if 'answer' in results:
+                formatted_results += f"📋 **Summary**: {results['answer']}\n\n"
+            items = results.get('results', [])
         else:
-            formatted_results += f"📄 Raw Results: {str(search_results)[:500]}...\n"
-        
-        # Add metadata if available
-        if 'metadata' in results:
-            metadata = results['metadata']
-            formatted_results += f"📊 **Data Categories**: {', '.join(metadata.get('categories', []))}\n"
-            formatted_results += f"📈 **Key Metrics**: {', '.join(metadata.get('data_points', []))}\n"
-        
+            formatted_results += f"📄 Raw Data: {str(results)[:500]}\n"
+            return formatted_results
+
+        if not items:
+            return formatted_results + "No results found.\n"
+
+        for i, source in enumerate(items[:5], 1):  # Top 5 results
+            if isinstance(source, dict):
+                title   = source.get('title', 'No title')
+                url     = source.get('url', 'No URL')
+                content = source.get('content', 'No content available')
+                formatted_results += f"🔗 **Source {i}**: {title}\n"
+                formatted_results += f"🌐 URL: {url}\n"
+                formatted_results += f"📄 Content: {content[:300]}...\n"
+                formatted_results += "-" * 40 + "\n\n"
+            else:
+                formatted_results += f"📄 Result {i}: {str(source)[:300]}\n\n"
+
         return formatted_results
 
     @tool
@@ -252,7 +250,7 @@ class StockWebSearchTool:
         """Return all available stock search tools for compatibility"""
         return self.get_all_stock_tools()
 
-# Standalone tool functions for LangChain integration
+# Standalone tool functions — all use the singleton for performance (no re-init cost)
 @tool
 def search_stock_performance(query: str) -> str:
     """
@@ -264,8 +262,7 @@ def search_stock_performance(query: str) -> str:
     Returns:
         str: Stock performance results
     """
-    tool = StockWebSearchTool()
-    return tool.search_stock_overview(query)
+    return get_stock_search_tool().search_stock_overview(query)
 
 @tool  
 def search_stock_news(query: str) -> str:
@@ -278,8 +275,7 @@ def search_stock_news(query: str) -> str:
     Returns:
         str: Stock news results
     """
-    tool = StockWebSearchTool()
-    return tool.search_stock_news_events(query)
+    return get_stock_search_tool().search_stock_news_events(query)
 
 @tool
 def search_stock_analysis(query: str) -> str:
@@ -292,8 +288,7 @@ def search_stock_analysis(query: str) -> str:
     Returns:
         str: Stock analysis results
     """
-    tool = get_stock_search_tool()
-    return tool.search_fundamental_analysis(query)
+    return get_stock_search_tool().search_fundamental_analysis(query)
 
 @tool
 def search_stock_recommendations(query: str) -> str:
@@ -306,8 +301,7 @@ def search_stock_recommendations(query: str) -> str:
     Returns:
         str: Stock recommendations results
     """
-    tool = get_stock_search_tool()
-    return tool.search_comprehensive_stock_analysis(query)
+    return get_stock_search_tool().search_comprehensive_stock_analysis(query)
 
 
 # ============================================================================

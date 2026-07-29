@@ -51,7 +51,7 @@ class IPOAdvisorAgent:
     def process_query(self, query: str) -> str:
         """Process IPO-related queries using the graph"""
         try:
-            initial_state = {"messages": [HumanMessage(content=query)]}
+            initial_state = MessagesState(messages=[HumanMessage(content=query)])
             result = self.graph.invoke(initial_state)
             return result["messages"][-1].content
         except Exception as e:
@@ -104,7 +104,7 @@ class StockAdvisorAgent:
     def process_query(self, query: str) -> str:
         """Process stock-related queries using the graph"""
         try:
-            initial_state = {"messages": [HumanMessage(content=query)]}
+            initial_state = MessagesState(messages=[HumanMessage(content=query)])
             result = self.graph.invoke(initial_state)
             return result["messages"][-1].content
         except Exception as e:
@@ -237,9 +237,7 @@ class OrchestratorAgent:
             self.build_graph()
         
         # Create initial state
-        initial_state = {
-            "messages": [HumanMessage(content=user_message)]
-        }
+        initial_state = MessagesState(messages=[HumanMessage(content=user_message)])
         
         try:
             # Run the graph
@@ -266,9 +264,7 @@ class OrchestratorAgent:
         if not hasattr(self, 'graph'):
             self.build_graph()
         
-        initial_state = {
-            "messages": [HumanMessage(content=user_message)]
-        }
+        initial_state = MessagesState(messages=[HumanMessage(content=user_message)])
         
         try:
             # Stream the graph execution
