@@ -65,18 +65,18 @@ class MultiAgentWorkflowDemo:
             
             # Initialize IPO Agent separately for testing
             print("\n📊 Initializing IPO Advisor Agent...")
-            print("   └── Model: groq_deepseek (deepseek-r1-distill-llama-70b)")
+            print("   └── Model: groq_oss (openai/gpt-oss-120b)")
             print("   └── Role: Specialized IPO analysis and recommendations")
             
             start_time = time.time()
             try:
-                self.ipo_agent = IPOAdvisorAgent(model_provider="groq_deepseek")
+                self.ipo_agent = IPOAdvisorAgent(model_provider="groq_oss")
                 init_time = time.time() - start_time
                 print(f"   └── ✅ Initialized in {init_time:.2f}s")
                 deepseek_available = True
             except Exception as e:
                 if "rate_limit" in str(e).lower() or "429" in str(e):
-                    print("   └── ⚠️  DeepSeek model is rate-limited")
+                    print("   └── ⚠️  Groq OSS model is rate-limited")
                     deepseek_available = False
                 else:
                     print(f"   └── ❌ Error: {str(e)}")
@@ -131,7 +131,7 @@ class MultiAgentWorkflowDemo:
         """Test orchestrator routing with detailed workflow tracking"""
         print(f"\n🧪 MULTI-AGENT WORKFLOW TESTING")
         print("=" * 50)
-        print(f"📊 DeepSeek Status: {'✅ Available' if deepseek_available else '⚠️ Rate-Limited'}")
+        print(f"📊 Groq OSS Model Status: {'✅ Available' if deepseek_available else '⚠️ Rate-Limited'}")
         print(f"🎯 Testing {len(queries)} different query types...")
         
         successful_tasks = 0
@@ -163,7 +163,7 @@ class MultiAgentWorkflowDemo:
                 # Step 2: Determine actual route
                 if "IPO Advisor Response:" in response:
                     actual_route = "IPO Advisor Agent"
-                    model_used = "deepseek-r1-distill-llama-70b"
+                    model_used = "openai/gpt-oss-120b"
                     route_emoji = "📊"
                 elif "Search Results" in response or "search_web" in response.lower():
                     actual_route = "Web Search Tool"
@@ -177,8 +177,8 @@ class MultiAgentWorkflowDemo:
                 # Step 3: Show routing results
                 print(f"🎯 Step 2: Query routed to → {route_emoji} {actual_route}")
                 
-                if model_used.startswith("deepseek") and not deepseek_available:
-                    print("⚠️  Step 3: DeepSeek unavailable, using fallback")
+                if model_used.startswith("openai/gpt-oss") and not deepseek_available:
+                    print("⚠️  Step 3: Groq OSS model unavailable, using fallback")
                     status = "RATE_LIMITED"
                 elif "Error" in response:
                     print("❌ Step 3: Error in processing")
@@ -258,7 +258,7 @@ class MultiAgentWorkflowDemo:
         
         print(f"\n🤖 AGENT STATUS:")
         print(f"   ├── Orchestrator (qwen/qwen3-32b): ✅ Active")
-        print(f"   ├── IPO Agent (deepseek-r1-distill-llama-70b): {'✅ Active' if deepseek_available else '⚠️ Rate-Limited'}")
+        print(f"   ├── IPO Agent (openai/gpt-oss-120b): {'✅ Active' if deepseek_available else '⚠️ Rate-Limited'}")
         print(f"   └── Web Search Tool (Tavily API): ✅ Active")
         
         print(f"\n🎯 ROUTING EFFECTIVENESS:")
@@ -282,7 +282,7 @@ class MultiAgentWorkflowDemo:
         
         if not deepseek_available:
             print(f"\n💡 RECOMMENDATIONS:")
-            print(f"   ├── DeepSeek model will reset at 00:00 UTC")
+            print(f"   ├── Groq OSS model will reset at 00:00 UTC")
             print(f"   ├── Consider using Qwen model for high-volume testing")
             print(f"   └── System is fully functional with current limitations")
     

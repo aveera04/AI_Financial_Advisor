@@ -10,7 +10,7 @@ from prompt_library.prompt import SYSTEM_PROMPT_IPO, SYSTEM_PROMPT_ORCHESTRATOR,
 
 class IPOAdvisorAgent:
     """Specialized IPO advisor agent"""
-    def __init__(self, model_provider: str = "groq_deepseek", api_key_name: str = "GROQ_API_KEY"):
+    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY"):
         self.model_loader = ModelLoader.from_env_key(model_provider, api_key_name)
         self.llm = self.model_loader.load_llm()
         
@@ -65,7 +65,11 @@ class StockAdvisorAgent:
         
         # Initialize specialized stock search tools
         self.stock_web_search_tool = StockWebSearchTool()
-        self.tools = self.stock_web_search_tool.get_all_stock_tools()  # Gets all 5 specialized stock tools
+        # Use essential tools only to avoid redundant comprehensive searches
+        # comprehensive_stock_analysis calls all 4 methods internally, causing duplication
+        # Instead, let the LLM choose specific tools as needed
+        self.tools = self.stock_web_search_tool.get_essential_stock_tools() + \
+                     self.stock_web_search_tool.get_analysis_tools()
         self.llm_with_tools = self.llm.bind_tools(self.tools)
         self.system_prompt = SYSTEM_PROMPT_STOCK
 
@@ -116,7 +120,7 @@ class OrchestratorAgent:
         self.llm = self.model_loader.load_llm()
         
         # Initialize specialized agents
-        self.ipo_agent = IPOAdvisorAgent(model_provider="groq_deepseek", api_key_name="GROQ_API_KEY")
+        self.ipo_agent = IPOAdvisorAgent(model_provider="groq_oss", api_key_name="GROQ_API_KEY")
         self.stock_agent = StockAdvisorAgent(model_provider="groq_oss", api_key_name="GROQ_API_KEY")
 
         # Initialize general web search tool with enhanced capabilities
@@ -136,9 +140,9 @@ class OrchestratorAgent:
         # Bind tools to orchestrator LLM
         self.llm_with_tools = self.llm.bind_tools(self.all_tools)
         
-        print(f"🎯 Orchestrator ({model_provider}) loaded {len(self.all_tools)} tools: {[tool.name for tool in self.all_tools]}")
-        print(f"📊 IPO Agent using: groq_deepseek (deepseek-r1-distill-llama-70b)")
-        print(f"📈 Stock Agent using: groq_oss (openai/gpt-oss-120b)")
+        print(f"Orchestrator ({model_provider}) loaded {len(self.all_tools)} tools: {[tool.name for tool in self.all_tools]}")
+        print(f"IPO Agent using: groq_oss (openai/gpt-oss-120b)")
+        print(f"Stock Agent using: groq_oss (openai/gpt-oss-120b)")
 
         self.system_prompt = SYSTEM_PROMPT_ORCHESTRATOR
 
@@ -148,13 +152,20 @@ class OrchestratorAgent:
         @tool
         def ipo_advisor_agent(query: str) -> str:
             """
-            Get IPO advice and information. Use for IPO-related queries.
+            MANDATORY tool for ALL IPO-related queries. Use this for ANY question about:
+            - IPO recommendations, upcoming IPOs, recently opened/listed IPOs
+            - Grey Market Premium (GMP), kostak rates, listing gains
+            - IPO subscription status, allotment, price bands
+            - IPO investment advice, IPO comparisons, IPO analysis
+            - ANY query containing words: IPO, GMP, listing, subscription, allotment
+            
+            DO NOT use general search tools for IPO queries - ALWAYS use this agent.
             
             Args:
                 query: The IPO question to answer
                 
             Returns:
-                str: IPO advisor response
+                str: Comprehensive IPO advisor response with detailed analysis
             """
             try:
                 result = self.ipo_agent.process_query(query)
@@ -230,15 +241,50 @@ class OrchestratorAgent:
             "messages": [HumanMessage(content=user_message)]
         }
         
-        # Run the graph
-        result = self.graph.invoke(initial_state)
+        try:
+            # Run the graph
+            result = self.graph.invoke(initial_state)
+            return result["messages"][-1].content
+        except Exception as e:
+            error_msg = str(e)
+            
+            # Handle rate limit errors gracefully
+            if "rate_limit" in error_msg.lower() or "429" in error_msg:
+                import re
+                wait_match = re.search(r'try again in (\d+m?\d*\.?\d*s?)', error_msg, re.IGNORECASE)
+                wait_time = wait_match.group(1) if wait_match else "a few minutes"
+                return f"⚠️ **Rate Limit Reached**\n\nThe AI service is temporarily unavailable due to high usage. Please wait {wait_time} and try again.\n\n*This is not an error with your query - just a temporary limit.*"
+            
+            # Re-raise other errors
+            raise
+
+    def run_stream(self, user_message: str):
+        """
+        Run the orchestrator with streaming support for faster perceived response.
+        Yields chunks of the response as they become available.
+        """
+        if not hasattr(self, 'graph'):
+            self.build_graph()
         
-        return result["messages"][-1].content
+        initial_state = {
+            "messages": [HumanMessage(content=user_message)]
+        }
+        
+        try:
+            # Stream the graph execution
+            for event in self.graph.stream(initial_state, stream_mode="values"):
+                if "messages" in event and event["messages"]:
+                    last_message = event["messages"][-1]
+                    if hasattr(last_message, 'content') and last_message.content:
+                        yield last_message.content
+        except Exception as e:
+            error_msg = str(e)
+            if "rate_limit" in error_msg.lower() or "429" in error_msg:
+                yield f"⚠️ **Rate Limit Reached** - Please wait and try again."
+            else:
+                raise
 
 # Legacy support - keep the old GraphBuilder name for backward compatibility
 class GraphBuilder(OrchestratorAgent):
     """Backward compatibility class for existing code"""
-    pass
-class GraphBuilder(OrchestratorAgent):
-    """Legacy alias for OrchestratorAgent"""
     pass

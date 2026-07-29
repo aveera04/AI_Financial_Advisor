@@ -82,7 +82,7 @@ class AgentRoutingTester:
             # Test different model providers
             test_configs = [
                 ("groq_oss", "GROQ_API_KEY"),
-                ("groq_deepseek", "GROQ_API_KEY_2"),
+                ("groq_oss", "GROQ_API_KEY_2"),
                 ("gemini_2.5_pro", "GEMINI_API_KEY")
             ]
             
