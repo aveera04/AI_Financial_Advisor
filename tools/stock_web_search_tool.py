@@ -90,7 +90,8 @@ class StockWebSearchTool:
             str: Formatted stock overview information with company fundamentals
         """
         try:
-            tool_instance = StockWebSearchTool()
+            from tools.stock_web_search_tool import get_stock_search_tool
+            tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_stock_overview(query)
             return tool_instance._format_search_results(results, "Stock Overview")
         except Exception as e:
@@ -110,7 +111,8 @@ class StockWebSearchTool:
             str: Formatted fundamental analysis with financial metrics and ratios
         """
         try:
-            tool_instance = StockWebSearchTool()
+            from tools.stock_web_search_tool import get_stock_search_tool
+            tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_fundamental_analysis(query)
             return tool_instance._format_search_results(results, "Fundamental Analysis")
         except Exception as e:
@@ -130,7 +132,8 @@ class StockWebSearchTool:
             str: Formatted technical analysis with indicators and price targets
         """
         try:
-            tool_instance = StockWebSearchTool()
+            from tools.stock_web_search_tool import get_stock_search_tool
+            tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_technical_analysis(query)
             return tool_instance._format_search_results(results, "Technical Analysis")
         except Exception as e:
@@ -150,7 +153,8 @@ class StockWebSearchTool:
             str: Formatted stock news and corporate events information
         """
         try:
-            tool_instance = StockWebSearchTool()
+            from tools.stock_web_search_tool import get_stock_search_tool
+            tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_stock_news_events(query)
             return tool_instance._format_search_results(results, "Stock News & Events")
         except Exception as e:
@@ -170,7 +174,8 @@ class StockWebSearchTool:
             str: Complete stock analysis with all four aspects covered
         """
         try:
-            tool_instance = StockWebSearchTool()
+            from tools.stock_web_search_tool import get_stock_search_tool
+            tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_comprehensive_stock_data(query)
             
             if results["status"] == "failed":
@@ -287,7 +292,7 @@ def search_stock_analysis(query: str) -> str:
     Returns:
         str: Stock analysis results
     """
-    tool = StockWebSearchTool()
+    tool = get_stock_search_tool()
     return tool.search_fundamental_analysis(query)
 
 @tool
@@ -301,5 +306,31 @@ def search_stock_recommendations(query: str) -> str:
     Returns:
         str: Stock recommendations results
     """
-    tool = StockWebSearchTool()
+    tool = get_stock_search_tool()
     return tool.search_comprehensive_stock_analysis(query)
+
+
+# ============================================================================
+# SINGLETON PATTERN FOR PERFORMANCE OPTIMIZATION
+# ============================================================================
+# Avoid recreating StockWebSearchTool on every tool call (saves ~200ms per call)
+
+_stock_search_tool_instance: StockWebSearchTool = None
+
+def get_stock_search_tool() -> StockWebSearchTool:
+    """
+    Get or create singleton StockWebSearchTool instance.
+    This avoids expensive re-initialization on every tool call.
+    
+    Returns:
+        StockWebSearchTool: Cached singleton instance
+    """
+    global _stock_search_tool_instance
+    if _stock_search_tool_instance is None:
+        _stock_search_tool_instance = StockWebSearchTool()
+    return _stock_search_tool_instance
+
+def reset_stock_search_tool():
+    """Reset the singleton instance (useful for testing)"""
+    global _stock_search_tool_instance
+    _stock_search_tool_instance = None

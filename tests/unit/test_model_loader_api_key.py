@@ -101,7 +101,7 @@ def test_different_models():
     print("🧪 Test 4: Different Model Providers")
     print("="*50)
     
-    models_to_test = ["groq_deepseek", "groq_oss", "groq_oss_20b"]
+    models_to_test = ["groq_oss", "groq_oss_20b"]
     api_key = os.getenv("GROQ_API_KEY")
     
     for model in models_to_test:

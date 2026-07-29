@@ -24,7 +24,7 @@ AI FINANCIAL ADVISOR - CORRECTED AGENT WORKFLOW DIAGRAM WITH ENHANCED TAVILY TOO
     └── 📊 ipo_advisor_agent (Route to IPO specialist)
           |
           v
-      📊 IPO ADVISOR AGENT (deepseek-r1-distill-llama-70b)
+      📊 IPO ADVISOR AGENT (openai/gpt-oss-120b)
           |
           v
       🔀 IPO TOOL SELECTION

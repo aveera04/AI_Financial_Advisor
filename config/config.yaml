@@ -1,7 +1,7 @@
 llm:
-  groq_deepseek:
-    provider: "groq"
-    model_name: "deepseek-r1-distill-llama-70b"
+  # groq_deepseek:
+  #   provider: "groq"
+  #   model_name: "deepseek-r1-distill-llama-70b"
 
   groq_oss:
     provider: "groq_oss"
@@ -18,3 +18,31 @@ llm:
   groq_lamma_8b_instant:
     provider: "groq"
     model_name: "lamma-8b-instant"
+
+# Search optimization settings - Template-based query system
+# When enabled, uses pre-defined templates for 90% of queries (zero LLM tokens)
+# Falls back to LLM only for complex/ambiguous queries
+search_optimization:
+  enabled: true
+  fallback_to_llm: true
+  llm_threshold: 0.3  # Confidence threshold for template match
+  cache_enabled: false  # Future: Redis caching
+  logging_enabled: true
+  
+  # Performance tuning
+  async_enabled: true
+  max_parallel_searches: 4
+  timeout_seconds: 30
+  
+  # LLM fallback configuration (for complex queries only)
+  fallback_llm:
+    model_provider: "groq_lamma_8b_instant"
+    api_key_source: "GROQ_API_KEY_2"
+    max_tokens: 50
+
+# Feature flags for gradual rollout
+feature_flags:
+  use_optimized_search: true
+  use_parallel_search: true
+  log_search_metrics: true
+  fallback_to_legacy: true  # Keep true during testing

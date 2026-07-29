@@ -1,0 +1,173 @@
+# Search Query Templates Configuration
+# Version: 1.0
+# This file contains optimized query templates for financial searches
+# Templates eliminate the need for LLM-based query generation
+
+search_config:
+  default_params:
+    max_results: 5
+    include_answer: true
+    include_favicon: false
+    country: "india"
+  
+  trusted_domains:
+    financial:
+      - "moneycontrol.com"
+      - "economictimes.indiatimes.com"
+      - "bseindia.com"
+      - "nseindia.com"
+      - "screener.in"
+      - "tickertape.in"
+    ipo:
+      - "investorgain.com"
+      - "chittorgarh.com"
+      - "ipowatch.in"
+      - "allipo.com"
+  
+  excluded_domains:
+    - "reddit.com"
+    - "quora.com"
+    - "facebook.com"
+    - "twitter.com"
+    - "instagram.com"
+
+templates:
+  # Stock Templates
+  stock_overview:
+    pattern: "{entity} stock price NSE BSE today"
+    search_depth: "basic"
+    topic: "finance"
+    max_results: 5
+    description: "Current stock price and basic info"
+    
+  stock_fundamental:
+    pattern: "{entity} stock P/E ratio ROE financial analysis"
+    search_depth: "advanced"
+    topic: "finance"
+    max_results: 5
+    description: "Fundamental analysis and financial ratios"
+    
+  stock_technical:
+    pattern: "{entity} stock technical analysis chart support resistance"
+    search_depth: "basic"
+    topic: "finance"
+    max_results: 3
+    description: "Technical analysis and chart patterns"
+    
+  stock_news:
+    pattern: "{entity} stock news latest"
+    search_depth: "basic"
+    topic: "news"
+    time_range: "week"
+    max_results: 5
+    description: "Latest news and updates"
+    
+  stock_comprehensive:
+    sub_queries:
+      - "stock_overview"
+      - "stock_fundamental"
+      - "stock_news"
+    parallel: true
+    description: "Full stock analysis using multiple queries"
+
+  # IPO Templates
+  ipo_details:
+    pattern: "{entity} IPO price band lot size subscription dates"
+    search_depth: "advanced"
+    topic: "finance"
+    max_results: 5
+    description: "IPO basic details and dates"
+    
+  ipo_gmp:
+    pattern: "{entity} IPO grey market premium GMP today"
+    search_depth: "basic"
+    topic: "finance"
+    time_range: "day"
+    max_results: 3
+    description: "Grey Market Premium information"
+    
+  ipo_subscription:
+    pattern: "{entity} IPO subscription status QIB NII retail"
+    search_depth: "basic"
+    topic: "news"
+    time_range: "day"
+    max_results: 3
+    description: "Subscription status by category"
+    
+  upcoming_ipo:
+    pattern: "upcoming IPO India 2026"
+    search_depth: "basic"
+    topic: "news"
+    time_range: "week"
+    max_results: 10
+    description: "List of upcoming IPOs"
+    
+  recent_ipo:
+    pattern: "recent IPO listing India 2026 performance"
+    search_depth: "basic"
+    topic: "news"
+    time_range: "month"
+    max_results: 10
+    description: "Recently listed IPOs"
+
+  # General Templates
+  market_news:
+    pattern: "Indian stock market news today NSE BSE"
+    search_depth: "basic"
+    topic: "news"
+    time_range: "day"
+    max_results: 5
+    description: "General market news"
+    
+  sector_analysis:
+    pattern: "{entity} sector analysis India stocks"
+    search_depth: "basic"
+    topic: "finance"
+    max_results: 5
+    description: "Sector-specific analysis"
+
+intent_patterns:
+  stock_overview:
+    keywords: ["stock", "share", "price", "current", "today", "trading"]
+    entities: ["company_name", "stock_symbol"]
+    priority: 1
+    
+  stock_fundamental:
+    keywords: ["pe ratio", "p/e", "roe", "fundamental", "financial", "earnings", "revenue", "profit", "debt"]
+    entities: ["company_name"]
+    priority: 2
+    
+  stock_technical:
+    keywords: ["technical", "chart", "support", "resistance", "rsi", "macd", "moving average", "trend"]
+    entities: ["company_name"]
+    priority: 2
+    
+  stock_news:
+    keywords: ["news", "latest", "update", "announcement", "breaking"]
+    entities: ["company_name"]
+    priority: 1
+    
+  ipo_details:
+    keywords: ["ipo", "issue", "price band", "lot size", "apply", "bid"]
+    entities: ["company_name"]
+    priority: 1
+    
+  ipo_gmp:
+    keywords: ["gmp", "grey market", "gray market", "premium", "kostak"]
+    entities: ["company_name"]
+    priority: 1
+    
+  ipo_subscription:
+    keywords: ["subscription", "subscribed", "times", "qib", "nii", "retail", "anchor"]
+    entities: ["company_name"]
+    priority: 2
+    
+  upcoming_ipo:
+    keywords: ["upcoming", "next", "new ipo", "coming", "future"]
+    entities: []
+    priority: 1
+    
+  market_news:
+    keywords: ["market", "sensex", "nifty", "index", "broader market"]
+    entities: []
+    priority: 2

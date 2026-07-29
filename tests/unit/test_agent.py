@@ -27,7 +27,7 @@ def test_multi_agent_system():
     print("🚀 MULTI-AGENT FINANCIAL ADVISOR SYSTEM TEST")
     print("=" * 70)
     print("🎯 Orchestrator Agent: groq_oss (llama3-70b-8192)")
-    print("📊 IPO Agent: groq_deepseek (deepseek-r1-distill-llama-70b)")
+    print("📊 IPO Agent: groq_oss (openai/gpt-oss-120b)")
     print("=" * 70)
     
     try:
@@ -161,7 +161,7 @@ def test_individual_agents():
     try:
         # Test IPO Agent directly
         print("📊 Testing IPO Agent (DeepSeek) directly...")
-        ipo_agent = IPOAdvisorAgent(model_provider="groq_deepseek")
+        ipo_agent = IPOAdvisorAgent(model_provider="groq_oss")
         
         ipo_query = "What are today's IPO recommendations?"
         ipo_response = ipo_agent.process_query(ipo_query)

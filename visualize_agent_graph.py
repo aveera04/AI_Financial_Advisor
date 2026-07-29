@@ -31,7 +31,7 @@ def create_workflow_graph():
         
         # Main Agents (central nodes)
         "Orchestrator Agent\n(llama3-70b-8192)": {"type": "orchestrator", "color": "#2196F3", "pos": (2, 0)},
-        "IPO Advisor Agent\n(deepseek-r1-distill-llama-70b)": {"type": "agent", "color": "#9C27B0", "pos": (6, 0)},
+        "IPO Advisor Agent\n(openai/gpt-oss-120b)": {"type": "agent", "color": "#9C27B0", "pos": (6, 0)},
         
         # Orchestrator Tools (connected to orchestrator)
         "search_web": {"type": "orch_tool", "color": "#FFC107", "pos": (1, 1.5)},
@@ -59,7 +59,7 @@ def create_workflow_graph():
         ("Orchestrator Agent\n(llama3-70b-8192)", "Route Decision"),
         
         # Route to IPO Agent or direct tool usage
-        ("Route Decision", "IPO Advisor Agent\n(deepseek-r1-distill-llama-70b)"),
+        ("Route Decision", "IPO Advisor Agent\n(openai/gpt-oss-120b)"),
         ("Route Decision", "Final Response"),  # Direct orchestrator response
         
         # Orchestrator Tools (connected to orchestrator)
@@ -68,13 +68,13 @@ def create_workflow_graph():
         ("Orchestrator Agent\n(llama3-70b-8192)", "tavily_financial_search"),
         
         # IPO Agent Tools (connected to IPO agent)
-        ("IPO Advisor Agent\n(deepseek-r1-distill-llama-70b)", "search_ipo_info"),
-        ("IPO Advisor Agent\n(deepseek-r1-distill-llama-70b)", "ipo_search_web"),
-        ("IPO Advisor Agent\n(deepseek-r1-distill-llama-70b)", "ipo_smart_search"),
-        ("IPO Advisor Agent\n(deepseek-r1-distill-llama-70b)", "ipo_financial_search"),
+        ("IPO Advisor Agent\n(openai/gpt-oss-120b)", "search_ipo_info"),
+        ("IPO Advisor Agent\n(openai/gpt-oss-120b)", "ipo_search_web"),
+        ("IPO Advisor Agent\n(openai/gpt-oss-120b)", "ipo_smart_search"),
+        ("IPO Advisor Agent\n(openai/gpt-oss-120b)", "ipo_financial_search"),
         
         # Final responses from agents
-        ("IPO Advisor Agent\n(deepseek-r1-distill-llama-70b)", "Final Response"),
+        ("IPO Advisor Agent\n(openai/gpt-oss-120b)", "Final Response"),
     ]
     
     # Add edges to graph
@@ -194,7 +194,7 @@ def print_workflow_details():
             print(f"  {i}. {tool.name} - {tool.description.split('.')[0]}")
         
         print(f"\n📊 IPO AGENT DETAILS:")
-        print(f"Model: groq_deepseek (deepseek-r1-distill-llama-70b)")
+        print(f"Model: groq_oss (openai/gpt-oss-120b)")
         print(f"Total Tools: {len(ipo_agent.tools)}")
         for i, tool in enumerate(ipo_agent.tools, 1):
             print(f"  {i}. {tool.name} - {tool.description.split('.')[0]}")
