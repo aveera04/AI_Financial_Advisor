@@ -62,3 +62,7 @@ logger/logs/
 
 # UV
 uv.lock
+
+
+GEMINI.md
+.agents
