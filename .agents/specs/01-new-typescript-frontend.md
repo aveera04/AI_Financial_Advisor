@@ -69,7 +69,7 @@ No routing changes. The `OrchestratorAgent` is consumed as-is. The FastAPI backe
 
 ## New Tools
 
-No new LangChain `@tool` functions. The frontend integrates via HTTP — no changes to the agent tool layer.
+No new LangChain `@tool` functions. The frontend integrates via HTTPS — no changes to the agent tool layer.
 
 ---
 
