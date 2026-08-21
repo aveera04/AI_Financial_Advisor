@@ -1,159 +1,89 @@
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import {
-  Send,
-  Paperclip,
-  X,
-  TrendingUp,
-  PiggyBank,
-  Shield,
-  Calculator,
-  Loader2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { PaperPlaneRight, ArrowClockwise } from "@phosphor-icons/react";
+import { useChatStore } from "@/stores/chatStore";
+import { useChat } from "@/hooks/useChat";
 
 interface ChatInputProps {
-  onSend: (message: string, files?: File[]) => void;
-  isLoading: boolean;
+  onRetry?: () => void;
 }
 
-const quickPrompts = [
-  { label: 'Investment basics', icon: TrendingUp, prompt: 'What are the best investment strategies for beginners?' },
-  { label: 'Savings tips', icon: PiggyBank, prompt: 'How can I save more money each month?' },
-  { label: 'Risk assessment', icon: Shield, prompt: 'How do I assess my risk tolerance for investing?' },
-  { label: 'Tax planning', icon: Calculator, prompt: 'What are common tax deductions I might be missing?' },
-];
+export function ChatInput({ onRetry }: ChatInputProps) {
+  const [value, setValue] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isLoading = useChatStore((s) => s.isLoading);
+  const systemReady = useChatStore((s) => s.systemReady);
+  const isInitializing = useChatStore((s) => s.isInitializing);
+  const initError = useChatStore((s) => s.initError);
+  const pendingQuery = useChatStore((s) => s.pendingQuery);
+  const setPendingQuery = useChatStore((s) => s.setPendingQuery);
+  const { sendMessage } = useChat();
 
-export function ChatInput({ onSend, isLoading }: ChatInputProps) {
-  const [input, setInput] = useState('');
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSubmit = () => {
-    if (!input.trim() && attachedFiles.length === 0) return;
-    onSend(input, attachedFiles);
-    setInput('');
-    setAttachedFiles([]);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
+  useEffect(() => {
+    if (pendingQuery) {
+      setValue(pendingQuery);
+      setPendingQuery("");
+      inputRef.current?.focus();
     }
-  };
+  }, [pendingQuery, setPendingQuery]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setAttachedFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!value.trim() || isLoading) return;
+
+    if (!systemReady) {
+      if (onRetry) {
+        onRetry();
+      }
+      return;
     }
-  };
 
-  const removeFile = (index: number) => {
-    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+    sendMessage(value);
+    setValue("");
+  }
 
-  const handleQuickPrompt = (prompt: string) => {
-    setInput(prompt);
-  };
+  const placeholderText = isLoading
+    ? "AI is analyzing your query…"
+    : isInitializing
+    ? "Connecting to backend server…"
+    : initError
+    ? "Backend offline — start FastAPI backend and click retry"
+    : "Ask about IPOs (e.g. GMP, allotment), stock analysis (e.g. RELIANCE, TATA), or market trends…";
 
   return (
-    <div className="border-t border-border bg-card/50 p-4 backdrop-blur-sm">
-      <div className="mx-auto max-w-7xl space-y-3">
-        {/* Quick Prompts */}
-        <div className="flex flex-wrap gap-2">
-          {quickPrompts.map((qp) => (
-            <Button
-              key={qp.label}
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickPrompt(qp.prompt)}
-              className="gap-2 text-xs"
-              disabled={isLoading}
-            >
-              <qp.icon className="h-3 w-3" />
-              {qp.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Attached Files */}
-        {attachedFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {attachedFiles.map((file, index) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="flex items-center gap-1"
-              >
-                <Paperclip className="h-3 w-3" />
-                {file.name}
-                <button
-                  onClick={() => removeFile(index)}
-                  className="ml-1 rounded-full p-0.5 hover:bg-muted"
-                  aria-label={`Remove ${file.name}`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        {/* Input Area */}
-        <div className="flex items-end gap-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            multiple
-            className="hidden"
-            aria-label="Attach files"
-          />
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
-            aria-label="Attach file"
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask about investments, savings, or financial planning..."
-            className="min-h-[44px] max-h-[200px] flex-1 resize-none bg-muted/50"
-            disabled={isLoading}
-            rows={1}
-            aria-label="Type your message"
-          />
-
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading || (!input.trim() && attachedFiles.length === 0)}
-            size="icon"
-            className={cn(
-              'transition-all',
-              input.trim() || attachedFiles.length > 0
-                ? 'bg-primary text-primary-foreground'
-                : ''
-            )}
-            aria-label="Send message"
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit} className="flex items-center gap-3 border-t border-border bg-primary px-4 py-3">
+      <input
+        ref={inputRef}
+        id="chat-input"
+        type="text"
+        value={value}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
+        placeholder={placeholderText}
+        disabled={isLoading || isInitializing}
+        className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-60"
+        autoComplete="off"
+      />
+      {!systemReady && initError && onRetry ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          onClick={onRetry}
+          title="Retry connecting to backend"
+          aria-label="Retry connection"
+        >
+          <ArrowClockwise size={20} weight="bold" />
+        </Button>
+      ) : (
+        <Button
+          type="submit"
+          size="icon"
+          disabled={!value.trim() || isLoading || !systemReady}
+          aria-label="Send message"
+        >
+          <PaperPlaneRight size={20} weight="bold" />
+        </Button>
+      )}
+    </form>
   );
 }

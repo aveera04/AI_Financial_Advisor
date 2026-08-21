@@ -1,114 +1,89 @@
-/**
- * API Service for Financial Advisor Backend
- * Handles all communication with the FastAPI backend
- */
+import type {
+  ChatRequest,
+  ChatResponse,
+  ApiError,
+  HealthResponse,
+  InitializeResponse,
+  SampleQueriesResponse,
+} from "@/types/api";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
-export interface Source {
-  id: string;
-  title: string;
-  url: string;
-  hostname: string;
-  reason: string;
-  quality: 'high' | 'medium' | 'low';
-}
+async function request<T>(
+  path: string,
+  options?: RequestInit
+): Promise<T> {
+  const url = `${BASE_URL}${path}`;
+  let res: Response;
 
-export interface ChatRequest {
-  message: string;
-  session_id?: string;
-  tone?: 'concise' | 'detailed';
-}
-
-export interface ChatResponse {
-  content: string;
-  sources: Source[];
-  model: string;
-  is_regulatory: boolean;
-  timestamp: string;
-  session_id: string;
-}
-
-export interface ModelInfo {
-  orchestrator: string;
-  ipo_agent: string;
-  stock_agent: string;
-  tools: string[];
-}
-
-export interface HealthResponse {
-  status: string;
-  timestamp: string;
-  model_info: Record<string, string>;
-}
-
-class ApiService {
-  private baseUrl: string;
-
-  constructor(baseUrl: string = API_BASE_URL) {
-    this.baseUrl = baseUrl;
-  }
-
-  /**
-   * Send a chat message to the financial advisor
-   */
-  async sendMessage(request: ChatRequest): Promise<ChatResponse> {
-    const response = await fetch(`${this.baseUrl}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
+  try {
+    res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
     });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
-      throw new Error(error.detail || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
+  } catch (netErr: unknown) {
+    const errorMsg =
+      netErr instanceof Error ? netErr.message : "Network request failed";
+    throw new ApiServiceError(
+      `Cannot connect to backend server at ${BASE_URL || "http://localhost:8000"}. (${errorMsg})`,
+      0,
+      "network_error"
+    );
   }
 
-  /**
-   * Get model information
-   */
-  async getModelInfo(): Promise<ModelInfo> {
-    const response = await fetch(`${this.baseUrl}/models`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (res.status === 429 && body) {
+      const error = body as ApiError;
+      throw new RateLimitError(
+        error.error,
+        error.retry_after ?? "a few minutes"
+      );
     }
 
-    return response.json();
+    throw new ApiServiceError(
+      body?.error ?? body?.detail ?? `Request failed (${res.status})`,
+      res.status,
+      (body as ApiError)?.error_type ?? "system_error"
+    );
   }
 
-  /**
-   * Health check
-   */
-  async healthCheck(): Promise<HealthResponse> {
-    const response = await fetch(`${this.baseUrl}/health`);
+  return res.json() as Promise<T>;
+}
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+export const api = {
+  health: () => request<HealthResponse>("/api/health"),
 
-    return response.json();
-  }
+  initialize: () =>
+    request<InitializeResponse>("/api/initialize", { method: "POST" }),
 
-  /**
-   * Check if the API is available
-   */
-  async isAvailable(): Promise<boolean> {
-    try {
-      await this.healthCheck();
-      return true;
-    } catch {
-      return false;
-    }
+  chat: (query: string) =>
+    request<ChatResponse>("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ query } satisfies ChatRequest),
+    }),
+
+  sampleQueries: () => request<SampleQueriesResponse>("/api/sample-queries"),
+};
+
+export class ApiServiceError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public errorType: string
+  ) {
+    super(message);
+    this.name = "ApiServiceError";
   }
 }
 
-// Export a singleton instance
-export const apiService = new ApiService();
-
-export default apiService;
+export class RateLimitError extends ApiServiceError {
+  constructor(
+    message: string,
+    public retryAfter: string
+  ) {
+    super(message, 429, "rate_limit");
+    this.name = "RateLimitError";
+  }
+}

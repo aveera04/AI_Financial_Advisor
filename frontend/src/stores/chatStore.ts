@@ -1,186 +1,49 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { Chat, ChatMessage, SessionSettings, AuditLogEntry } from '@/types/chat';
+import { create } from "zustand";
+import type { Message } from "@/types/chat";
 
 interface ChatState {
-  chats: Chat[];
-  currentChatId: string | null;
-  sessionSettings: SessionSettings;
-  sessionStartTime: Date | null;
-  auditLog: AuditLogEntry[];
-  isInitialized: boolean;
-  
+  messages: Message[];
+  isLoading: boolean;
+  systemReady: boolean;
+  isInitializing: boolean;
+  initError: string | null;
+  sampleQueries: string[];
+  pendingQuery: string;
+
   // Actions
-  initializeSession: () => void;
-  createNewChat: () => string;
-  loadChat: (chatId: string) => void;
-  clearCurrentChat: () => void;
-  deleteChat: (chatId: string) => void;
-  renameChat: (chatId: string, newTitle: string) => void;
-  addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
-  updateSettings: (settings: Partial<SessionSettings>) => void;
-  confirmRegulatoryAction: (messageId: string) => void;
-  addAuditEntry: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
-  getCurrentChat: () => Chat | undefined;
+  addMessage: (message: Message) => void;
+  clearMessages: () => void;
+  setLoading: (loading: boolean) => void;
+  setSystemReady: (ready: boolean) => void;
+  setIsInitializing: (isInitializing: boolean) => void;
+  setInitError: (error: string | null) => void;
+  setSampleQueries: (queries: string[]) => void;
+  setPendingQuery: (query: string) => void;
 }
 
-const generateId = () => Math.random().toString(36).substring(2, 15);
+export const useChatStore = create<ChatState>((set) => ({
+  messages: [],
+  isLoading: false,
+  systemReady: false,
+  isInitializing: true,
+  initError: null,
+  sampleQueries: [],
+  pendingQuery: "",
 
-const defaultSettings: SessionSettings = {
-  tone: 'concise',
-  currency: 'USD',
-  riskProfile: 'moderate',
-  storageMode: 'local',
-  privacyOptIn: false,
-  highContrastMode: false,
-};
+  addMessage: (message) =>
+    set((state) => ({ messages: [...state.messages, message] })),
 
-export const useChatStore = create<ChatState>()(
-  persist(
-    (set, get) => ({
-      chats: [],
-      currentChatId: null,
-      sessionSettings: defaultSettings,
-      sessionStartTime: null,
-      auditLog: [],
-      isInitialized: false,
+  clearMessages: () => set({ messages: [] }),
 
-      initializeSession: () => {
-        const chatId = get().createNewChat();
-        set({
-          isInitialized: true,
-          sessionStartTime: new Date(),
-          currentChatId: chatId,
-        });
-      },
+  setLoading: (loading) => set({ isLoading: loading }),
 
-      createNewChat: () => {
-        const newChat: Chat = {
-          id: generateId(),
-          title: 'New Conversation',
-          lastMessage: '',
-          timestamp: new Date(),
-          messages: [],
-        };
-        set((state) => ({
-          chats: [newChat, ...state.chats],
-          currentChatId: newChat.id,
-        }));
-        return newChat.id;
-      },
+  setSystemReady: (ready) => set({ systemReady: ready }),
 
-      loadChat: (chatId) => {
-        set({ currentChatId: chatId });
-      },
+  setIsInitializing: (isInitializing) => set({ isInitializing }),
 
-      clearCurrentChat: () => {
-        const { currentChatId } = get();
-        if (!currentChatId) return;
-        
-        set((state) => ({
-          chats: state.chats.map((chat) =>
-            chat.id === currentChatId
-              ? { ...chat, messages: [], lastMessage: '', title: 'New Conversation' }
-              : chat
-          ),
-        }));
-      },
+  setInitError: (error) => set({ initError: error }),
 
-      deleteChat: (chatId) => {
-        set((state) => {
-          const newChats = state.chats.filter((chat) => chat.id !== chatId);
-          const newCurrentChatId =
-            state.currentChatId === chatId
-              ? newChats[0]?.id || null
-              : state.currentChatId;
-          return { chats: newChats, currentChatId: newCurrentChatId };
-        });
-      },
+  setSampleQueries: (queries) => set({ sampleQueries: queries }),
 
-      renameChat: (chatId, newTitle) => {
-        set((state) => ({
-          chats: state.chats.map((chat) =>
-            chat.id === chatId ? { ...chat, title: newTitle } : chat
-          ),
-        }));
-      },
-
-      addMessage: (message) => {
-        const { currentChatId } = get();
-        if (!currentChatId) return;
-
-        const newMessage: ChatMessage = {
-          ...message,
-          id: generateId(),
-          timestamp: new Date(),
-        };
-
-        set((state) => ({
-          chats: state.chats.map((chat) =>
-            chat.id === currentChatId
-              ? {
-                  ...chat,
-                  messages: [...chat.messages, newMessage],
-                  lastMessage: message.content.substring(0, 50),
-                  timestamp: new Date(),
-                  title: chat.messages.length === 0 ? message.content.substring(0, 30) : chat.title,
-                }
-              : chat
-          ),
-        }));
-      },
-
-      updateSettings: (settings) => {
-        set((state) => ({
-          sessionSettings: { ...state.sessionSettings, ...settings },
-        }));
-      },
-
-      confirmRegulatoryAction: (messageId) => {
-        const { currentChatId } = get();
-        if (!currentChatId) return;
-
-        set((state) => ({
-          chats: state.chats.map((chat) =>
-            chat.id === currentChatId
-              ? {
-                  ...chat,
-                  messages: chat.messages.map((msg) =>
-                    msg.id === messageId ? { ...msg, confirmed: true } : msg
-                  ),
-                }
-              : chat
-          ),
-        }));
-      },
-
-      addAuditEntry: (entry) => {
-        const newEntry: AuditLogEntry = {
-          ...entry,
-          id: generateId(),
-          timestamp: new Date(),
-        };
-        set((state) => ({
-          auditLog: [...state.auditLog, newEntry],
-        }));
-      },
-
-      getCurrentChat: () => {
-        const { chats, currentChatId } = get();
-        return chats.find((chat) => chat.id === currentChatId);
-      },
-    }),
-    {
-      name: 'financial-advisor-storage',
-      // Always persist chats and state - the privacy setting is just informational
-      partialize: (state) => ({
-        chats: state.chats,
-        currentChatId: state.currentChatId,
-        sessionSettings: state.sessionSettings,
-        sessionStartTime: state.sessionStartTime,
-        auditLog: state.auditLog,
-        isInitialized: state.isInitialized,
-      }),
-    }
-  )
-);
+  setPendingQuery: (query) => set({ pendingQuery: query }),
+}));

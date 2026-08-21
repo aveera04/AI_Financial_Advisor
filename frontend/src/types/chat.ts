@@ -1,47 +1,21 @@
-export interface Source {
-  id: string;
-  title: string;
-  url: string;
-  hostname: string;
-  reason: string;
-  quality: 'high' | 'medium' | 'low';
-  isUserUpload?: boolean;
-  filename?: string;
+export type Role = "user" | "assistant";
+
+export type AgentRoute =
+  | "IPO Advisor Agent"
+  | "Stock Advisor Agent"
+  | "Web Search Tool (Tavily)"
+  | "Orchestrator";
+
+export interface AgentInfo {
+  agent_used: string;
+  route_info: string;
+  processing_time: number;
 }
 
-export interface ChatMessage {
+export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: Role;
   content: string;
   timestamp: Date;
-  sources?: Source[];
-  model?: string;
-  isRegulatory?: boolean;
-  requiresConfirmation?: boolean;
-  confirmed?: boolean;
-}
-
-export interface Chat {
-  id: string;
-  title: string;
-  lastMessage: string;
-  timestamp: Date;
-  messages: ChatMessage[];
-}
-
-export interface SessionSettings {
-  tone: 'concise' | 'detailed';
-  currency: string;
-  riskProfile: 'conservative' | 'moderate' | 'aggressive';
-  storageMode: 'local' | 'cloud';
-  privacyOptIn: boolean;
-  highContrastMode: boolean;
-}
-
-export interface AuditLogEntry {
-  id: string;
-  timestamp: Date;
-  messageId: string;
-  sourcesFetched: string[];
-  modelUsed: string;
+  agentInfo?: AgentInfo;
 }

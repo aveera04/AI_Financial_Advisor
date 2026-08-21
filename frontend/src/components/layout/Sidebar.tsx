@@ -1,222 +1,78 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Play, 
-  Trash2, 
-  MessageSquare, 
-  MoreHorizontal,
-  Pencil,
-  FileDown,
-  Search
-} from 'lucide-react';
-import { useChatStore } from '@/stores/chatStore';
-import { formatDistanceToNow } from 'date-fns';
-import { ClearChatDialog } from '@/components/dialogs/ClearChatDialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/Spinner";
+import { useChatStore } from "@/stores/chatStore";
+import { Trash, Lightbulb, Info, ChartBar, TrendUp, MagnifyingGlass, RocketLaunch, ArrowClockwise } from "@phosphor-icons/react";
 
-export function Sidebar() {
-  const { 
-    chats, 
-    currentChatId, 
-    isInitialized,
-    initializeSession, 
-    loadChat, 
-    deleteChat,
-    renameChat 
-  } = useChatStore();
-  
-  const [showClearDialog, setShowClearDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [editingChatId, setEditingChatId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
+interface SidebarProps {
+  onInitialize?: () => void;
+}
 
-  const recentChats = chats
-    .filter(chat => 
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .slice(0, 10);
-
-  const handleRename = (chatId: string) => {
-    if (editTitle.trim()) {
-      renameChat(chatId, editTitle.trim());
-    }
-    setEditingChatId(null);
-    setEditTitle('');
-  };
-
-  const handleExportChat = (chatId: string) => {
-    const chat = chats.find(c => c.id === chatId);
-    if (!chat) return;
-    
-    const content = chat.messages
-      .map(m => `[${m.role.toUpperCase()}] ${m.content}`)
-      .join('\n\n');
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${chat.title}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+export function Sidebar({ onInitialize }: SidebarProps) {
+  const clearMessages = useChatStore((s) => s.clearMessages);
+  const sampleQueries = useChatStore((s) => s.sampleQueries);
+  const setPendingQuery = useChatStore((s) => s.setPendingQuery);
+  const systemReady = useChatStore((s) => s.systemReady);
+  const isInitializing = useChatStore((s) => s.isInitializing);
 
   return (
-    <aside 
-      className="flex h-full w-64 flex-col border-r border-border bg-sidebar"
-      role="complementary"
-      aria-label="Chat sidebar"
-    >
-      {/* Initialize Button */}
-      <div className="p-4">
-        <Button
-          onClick={initializeSession}
-          className="w-full gap-2"
-          variant={isInitialized ? "secondary" : "default"}
-          aria-label="Initialize new session"
-        >
-          <Play className="h-4 w-4" />
-          {isInitialized ? 'New Session' : 'Initialize'}
-        </Button>
+    <aside className="flex w-72 shrink-0 flex-col border-r border-border bg-primary">
+      <div className="border-b border-border p-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Info size={18} weight="bold" /> System Information
+        </div>
+        <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${systemReady ? "bg-accent" : "bg-destructive"}`} />
+            {systemReady ? "System Active" : isInitializing ? "Initializing..." : "Not Initialized"}
+          </div>
+          <div className="flex items-center gap-2"><ChartBar size={14} /> IPO Advisor Agent</div>
+          <div className="flex items-center gap-2"><TrendUp size={14} /> Stock Advisor Agent</div>
+          <div className="flex items-center gap-2"><MagnifyingGlass size={14} /> Tavily Web Search</div>
+        </div>
+        {onInitialize && (
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <Button
+              variant={systemReady ? "secondary" : "primary"}
+              size="sm"
+              onClick={onInitialize}
+              disabled={isInitializing}
+              className="w-full text-xs flex items-center justify-center gap-1.5 h-8 font-medium cursor-pointer"
+            >
+              {isInitializing ? (
+                <>
+                  <Spinner size="sm" /> Initializing...
+                </>
+              ) : systemReady ? (
+                <>
+                  <ArrowClockwise size={14} weight="bold" /> Re-initialize System
+                </>
+              ) : (
+                <>
+                  <RocketLaunch size={14} weight="bold" /> Initialize System
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
-
-      {/* Search */}
-      <div className="px-4 pb-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search chats..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-muted/50"
-            aria-label="Search conversations"
-          />
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Lightbulb size={18} weight="bold" /> Sample Queries
+        </div>
+        <div className="mt-3 space-y-2">
+          {sampleQueries.map((q, i) => (
+            <button key={i} onClick={() => setPendingQuery(q)} disabled={!systemReady}
+              className="w-full cursor-pointer rounded-lg border border-border bg-card px-3 py-2 text-left text-xs text-muted-foreground transition-colors duration-200 hover:border-accent/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50">
+              {q}
+            </button>
+          ))}
         </div>
       </div>
-
-      {/* Recent Chats */}
-      <div className="flex-1 overflow-hidden">
-        <div className="px-4 py-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Recent Chats
-          </h3>
-        </div>
-        <ScrollArea className="h-full px-2">
-          <nav aria-label="Recent conversations" className="space-y-1 pb-4">
-            {recentChats.length === 0 ? (
-              <p className="px-2 py-4 text-center text-sm text-muted-foreground">
-                No conversations yet
-              </p>
-            ) : (
-              recentChats.map((chat) => (
-                <div
-                  key={chat.id}
-                  className={cn(
-                    "group relative flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-muted/50",
-                    currentChatId === chat.id && "bg-muted"
-                  )}
-                >
-                  <button
-                    onClick={() => loadChat(chat.id)}
-                    className="flex flex-1 items-start gap-2 text-left"
-                    aria-current={currentChatId === chat.id ? 'page' : undefined}
-                  >
-                    <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0 flex-1">
-                      {editingChatId === chat.id ? (
-                        <Input
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          onBlur={() => handleRename(chat.id)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleRename(chat.id)}
-                          className="h-6 text-sm"
-                          autoFocus
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <>
-                          <p className="truncate text-sm font-medium">
-                            {chat.title}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {chat.lastMessage || 'No messages'}
-                          </p>
-                          <p className="text-xs text-muted-foreground/70">
-                            {formatDistanceToNow(new Date(chat.timestamp), { addSuffix: true })}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </button>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                        aria-label="Chat options"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setEditingChatId(chat.id);
-                          setEditTitle(chat.title);
-                        }}
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Rename
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExportChat(chat.id)}>
-                        <FileDown className="mr-2 h-4 w-4" />
-                        Export
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => deleteChat(chat.id)}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))
-            )}
-          </nav>
-        </ScrollArea>
-      </div>
-
-      {/* Clear Chat Button */}
       <div className="border-t border-border p-4">
-        <Button
-          variant="outline"
-          className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-          onClick={() => setShowClearDialog(true)}
-          disabled={!currentChatId}
-          aria-label="Clear current chat"
-        >
-          <Trash2 className="h-4 w-4" />
-          Clear Chat
+        <Button variant="ghost" size="sm" onClick={clearMessages} className="w-full">
+          <Trash size={16} /> Clear Chat
         </Button>
       </div>
-
-      <ClearChatDialog 
-        open={showClearDialog} 
-        onOpenChange={setShowClearDialog} 
-      />
     </aside>
   );
 }
