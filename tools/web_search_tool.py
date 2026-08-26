@@ -21,7 +21,7 @@ class WebSearchTool:
         self.tavily_search = TavilySearch(api_key=self.api_key)
 
     @tool
-    def search_web(query: str) -> str:
+    def search_web(query: str = "") -> str:
         """
         Search the web for general information.
         
@@ -32,6 +32,8 @@ class WebSearchTool:
             str: Search results
         """
         try:
+            if not query:
+                return "No query provided for search."
             from tools.web_search_tool import get_web_search_tool
             web_tool = get_web_search_tool()
             results = web_tool.tavily_search.invoke(query)
@@ -53,7 +55,7 @@ class WebSearchTool:
             return f"Error: {str(e)}"
         
     @tool
-    def search_ipo_info(query: str) -> str:
+    def search_ipo_info(query: str = "") -> str:
         """
         Search for IPO information.
         
@@ -64,6 +66,8 @@ class WebSearchTool:
             str: IPO search results
         """
         try:
+            if not query:
+                return "No query provided for IPO search."
             from tools.web_search_tool import get_web_search_tool
             web_tool = get_web_search_tool()
             results = web_tool.tavily_ipo_search.search(query)
@@ -154,10 +158,8 @@ class WebSearchTool:
     def get_ipo_search_tools(self):
         """Return all search tools for LangChain integration"""
         return [
-            self.search_web, 
-            self.search_ipo_info, 
-            self.tavily_smart_search, 
-            self.tavily_financial_search,
+            self.search_ipo_info,
+            self.search_web,
         ]
     
     def get_search_tool(self):

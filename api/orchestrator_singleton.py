@@ -27,21 +27,25 @@ def is_initialized() -> bool:
     return _is_initialized
 
 
-def initialize_orchestrator(model_provider: str = "groq_oss") -> None:
+def initialize_orchestrator(model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY_2") -> None:
     """
     Initialize the OrchestratorAgent singleton.
     Raises ValueError if required env vars are missing.
     """
     global _orchestrator_instance, _is_initialized
 
-    if not os.getenv("GROQ_API_KEY") or not os.getenv("TAVILY_API_KEY"):
-        raise ValueError("Missing required API keys: GROQ_API_KEY and TAVILY_API_KEY")
+    if not (os.getenv("GROQ_API_KEY_2") or os.getenv("GROQ_API_KEY")) or not os.getenv("TAVILY_API_KEY"):
+        raise ValueError("Missing required API keys: GROQ_API_KEY_2 (or GROQ_API_KEY) and TAVILY_API_KEY")
+
+    # If GROQ_API_KEY_2 is not present, fallback to GROQ_API_KEY
+    if not os.getenv("GROQ_API_KEY_2") and os.getenv("GROQ_API_KEY"):
+        api_key_name = "GROQ_API_KEY"
 
     # Import here to avoid circular imports and heavy loading at module level
     from agent.agentic_workflow import OrchestratorAgent
 
-    logger.info(f"Initializing OrchestratorAgent with provider: {model_provider}")
-    _orchestrator_instance = OrchestratorAgent(model_provider=model_provider)
+    logger.info(f"Initializing OrchestratorAgent with provider: {model_provider} and key: {api_key_name}")
+    _orchestrator_instance = OrchestratorAgent(model_provider=model_provider, api_key_name=api_key_name)
     _is_initialized = True
     logger.info("OrchestratorAgent initialized successfully")
 

@@ -1,7 +1,19 @@
 llm:
-  # groq_deepseek:
-  #   provider: "groq"
-  #   model_name: "deepseek-r1-distill-llama-70b"
+  groq_compound:
+    provider: "groq"
+    model_name: "groq/compound"
+
+  groq_compound_mini:
+    provider: "groq"
+    model_name: "groq/compound-mini"
+
+  groq_llama_70b:
+    provider: "groq"
+    model_name: "llama-3.3-70b-versatile"
+
+  groq_llama_8b:
+    provider: "groq"
+    model_name: "llama-3.1-8b-instant"
 
   groq_oss:
     provider: "groq_oss"
@@ -14,10 +26,6 @@ llm:
   gemini_2.5_pro:
     provider: "gemini"
     model_name: "models/gemini-2.5-pro"
-
-  groq_lamma_8b_instant:
-    provider: "groq"
-    model_name: "lamma-8b-instant"
 
 # Search optimization settings - Template-based query system
 # When enabled, uses pre-defined templates for 90% of queries (zero LLM tokens)
@@ -36,7 +44,7 @@ search_optimization:
   
   # LLM fallback configuration (for complex queries only)
   fallback_llm:
-    model_provider: "groq_lamma_8b_instant"
+    model_provider: "groq_llama_8b"
     api_key_source: "GROQ_API_KEY_2"
     max_tokens: 50
 

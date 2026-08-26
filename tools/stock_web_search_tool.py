@@ -75,7 +75,7 @@ class StockWebSearchTool:
         return formatted_results
 
     @tool
-    def search_stock_overview(query: str) -> str:
+    def search_stock_overview(query: str = "") -> str:
         """
         Search for comprehensive stock overview information including company details, market cap, current price, and basic metrics.
         
@@ -88,6 +88,8 @@ class StockWebSearchTool:
             str: Formatted stock overview information with company fundamentals
         """
         try:
+            if not query:
+                return "No query provided for stock overview search."
             from tools.stock_web_search_tool import get_stock_search_tool
             tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_stock_overview(query)
@@ -96,7 +98,7 @@ class StockWebSearchTool:
             return f"❌ Stock Overview search error: {str(e)}"
 
     @tool  
-    def search_fundamental_analysis(query: str) -> str:
+    def search_fundamental_analysis(query: str = "") -> str:
         """
         Search for fundamental analysis data including financial ratios, revenue growth, profitability metrics, and valuation.
         
@@ -109,6 +111,8 @@ class StockWebSearchTool:
             str: Formatted fundamental analysis with financial metrics and ratios
         """
         try:
+            if not query:
+                return "No query provided for fundamental analysis search."
             from tools.stock_web_search_tool import get_stock_search_tool
             tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_fundamental_analysis(query)
@@ -117,7 +121,7 @@ class StockWebSearchTool:
             return f"❌ Fundamental Analysis search error: {str(e)}"
 
     @tool
-    def search_technical_analysis(query: str) -> str:
+    def search_technical_analysis(query: str = "") -> str:
         """
         Search for technical analysis information including price trends, technical indicators, and chart patterns.
         
@@ -130,6 +134,8 @@ class StockWebSearchTool:
             str: Formatted technical analysis with indicators and price targets
         """
         try:
+            if not query:
+                return "No query provided for technical analysis search."
             from tools.stock_web_search_tool import get_stock_search_tool
             tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_technical_analysis(query)
@@ -138,7 +144,7 @@ class StockWebSearchTool:
             return f"❌ Technical Analysis search error: {str(e)}"
 
     @tool
-    def search_stock_news_events(query: str) -> str:
+    def search_stock_news_events(query: str = "") -> str:
         """
         Search for latest stock news, corporate events, earnings results, and market developments.
         
@@ -151,6 +157,8 @@ class StockWebSearchTool:
             str: Formatted stock news and corporate events information
         """
         try:
+            if not query:
+                return "No query provided for stock news search."
             from tools.stock_web_search_tool import get_stock_search_tool
             tool_instance = get_stock_search_tool()
             results = tool_instance.stock_search_utility.search_stock_news_events(query)

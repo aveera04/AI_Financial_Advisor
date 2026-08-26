@@ -155,12 +155,14 @@ def initialize_system():
     """Initialize the multi-agent system"""
     try:
         # Check API keys
-        if not os.getenv("GROQ_API_KEY") or not os.getenv("TAVILY_API_KEY"):
-            st.error("❌ Missing API keys! Please set GROQ_API_KEY and TAVILY_API_KEY in your .env file")
+        if not (os.getenv("GROQ_API_KEY_2") or os.getenv("GROQ_API_KEY")) or not os.getenv("TAVILY_API_KEY"):
+            st.error("❌ Missing API keys! Please set GROQ_API_KEY_2 (or GROQ_API_KEY) and TAVILY_API_KEY in your .env file")
             return False
         
+        api_key_name = "GROQ_API_KEY_2" if os.getenv("GROQ_API_KEY_2") else "GROQ_API_KEY"
+        
         with st.spinner("🤖 Initializing AI Financial Advisor System..."):
-            st.session_state.orchestrator = OrchestratorAgent(model_provider="groq_oss")
+            st.session_state.orchestrator = OrchestratorAgent(model_provider="groq_oss", api_key_name=api_key_name)
             st.session_state.system_initialized = True
             
         st.success("✅ AI Financial Advisor System initialized successfully!")

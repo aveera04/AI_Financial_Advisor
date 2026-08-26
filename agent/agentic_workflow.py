@@ -10,7 +10,7 @@ from prompt_library.prompt import SYSTEM_PROMPT_IPO, SYSTEM_PROMPT_ORCHESTRATOR,
 
 class IPOAdvisorAgent:
     """Specialized IPO advisor agent"""
-    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY"):
+    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY_2"):
         self.model_loader = ModelLoader.from_env_key(model_provider, api_key_name)
         self.llm = self.model_loader.load_llm()
         
@@ -59,7 +59,7 @@ class IPOAdvisorAgent:
 
 class StockAdvisorAgent:
     """Specialized Stock advisor agent with advanced stock analysis tools"""
-    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY"):
+    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY_2"):
         self.model_loader = ModelLoader.from_env_key(model_provider, api_key_name)
         self.llm = self.model_loader.load_llm()
         
@@ -114,14 +114,14 @@ class StockAdvisorAgent:
 
 class OrchestratorAgent:
     """Main orchestrator agent that routes queries to specialized agents"""
-    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY"):
+    def __init__(self, model_provider: str = "groq_oss", api_key_name: str = "GROQ_API_KEY_2"):
         # Initialize LLM for orchestrator
         self.model_loader = ModelLoader.from_env_key(model_provider, api_key_name)
         self.llm = self.model_loader.load_llm()
         
         # Initialize specialized agents
-        self.ipo_agent = IPOAdvisorAgent(model_provider="groq_oss", api_key_name="GROQ_API_KEY")
-        self.stock_agent = StockAdvisorAgent(model_provider="groq_oss", api_key_name="GROQ_API_KEY")
+        self.ipo_agent = IPOAdvisorAgent(model_provider=model_provider, api_key_name=api_key_name)
+        self.stock_agent = StockAdvisorAgent(model_provider=model_provider, api_key_name=api_key_name)
 
         # Initialize general web search tool with enhanced capabilities
         self.web_search_tool = WebSearchTool()
@@ -141,8 +141,8 @@ class OrchestratorAgent:
         self.llm_with_tools = self.llm.bind_tools(self.all_tools)
         
         print(f"Orchestrator ({model_provider}) loaded {len(self.all_tools)} tools: {[tool.name for tool in self.all_tools]}")
-        print(f"IPO Agent using: groq_oss (openai/gpt-oss-120b)")
-        print(f"Stock Agent using: groq_oss (openai/gpt-oss-120b)")
+        print(f"IPO Agent using: {model_provider}")
+        print(f"Stock Agent using: {model_provider}")
 
         self.system_prompt = SYSTEM_PROMPT_ORCHESTRATOR
 
@@ -208,6 +208,16 @@ class OrchestratorAgent:
         
         return {"messages": [response]}
 
+    def route_after_tools(self, state: MessagesState):
+        """Route to END if a sub-agent tool was used, else return to orchestrator."""
+        last_message = state["messages"][-1]
+        
+        # If the last message is a ToolMessage from a sub-agent, end the graph
+        if hasattr(last_message, 'name') and last_message.name in ["ipo_advisor_agent", "stock_advisor_agent"]:
+            return END
+            
+        return "orchestrator"
+
     def build_graph(self):
         """Build the orchestrator workflow graph"""
         graph_builder = StateGraph(MessagesState)
@@ -222,7 +232,7 @@ class OrchestratorAgent:
             "orchestrator",
             tools_condition,
         )
-        graph_builder.add_edge("tools", "orchestrator")
+        graph_builder.add_conditional_edges("tools", self.route_after_tools)
         
         # Compile the graph
         self.graph = graph_builder.compile()

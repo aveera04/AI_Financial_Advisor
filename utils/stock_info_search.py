@@ -35,3 +35,15 @@ class TavilyStockInfoSearch:
     def search_comprehensive_stock_data(self, user_query: str) -> dict:
         """Simple comprehensive search - just run the user query"""
         return self.search(user_query)
+
+    def search_stock_performance(self, user_query: str) -> dict:
+        """Search for stock performance"""
+        optimized_query = f"{user_query} stock performance history NSE BSE"
+        results = self.search(optimized_query)
+        return {"status": "success", "optimized_query": optimized_query, "results": results}
+
+    def search_stock_recommendations(self, user_query: str) -> dict:
+        """Search for stock recommendations"""
+        optimized_query = f"{user_query} stock recommendation buy sell hold target price"
+        results = self.search(optimized_query)
+        return {"status": "success", "optimized_query": optimized_query, "results": results}

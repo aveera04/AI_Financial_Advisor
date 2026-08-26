@@ -42,3 +42,19 @@ class TavilyIPOInfoSearch:
     def search_comprehensive_ipo_data(self, user_query: str, company_name: str = None) -> dict:
         """Simple comprehensive search - just run the user query"""
         return self.search(user_query)
+
+    def search_ipo_news(self, query: str) -> dict:
+        """Search for IPO news"""
+        return self.search(f"{query} IPO news India")
+
+    def search_ipo_analysis(self, query: str) -> dict:
+        """Search for IPO analysis"""
+        return self.search(f"{query} IPO analysis review India")
+
+    def search_ipo_recommendations(self, query: str) -> dict:
+        """Search for IPO recommendations"""
+        return self.search(f"{query} IPO recommendation buy or not")
+
+    def search_ipo_performance(self, query: str) -> dict:
+        """Search for IPO performance"""
+        return self.search(f"{query} IPO performance listing gains")

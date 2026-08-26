@@ -21,7 +21,15 @@ class ConfigLoader:
         return self.config[key]
 
 class ModelLoader(BaseModel):
-    model_provider: Literal["groq_oss", "groq_oss_20b", "groq_lamma_8b_instant", "gemini_2.5_pro"] = "groq_oss"
+    model_provider: Literal[
+        "groq_oss",
+        "groq_oss_20b",
+        "groq_compound",
+        "groq_compound_mini",
+        "groq_llama_70b",
+        "groq_llama_8b",
+        "gemini_2.5_pro",
+    ] = "groq_oss"
     api_key: str = Field(..., description="API key for the model provider")  # Mandatory parameter
     api_key_source: Optional[str] = Field(default=None, description="Source of the API key")
     config: Optional[ConfigLoader] = Field(default=None, exclude=True)
@@ -47,7 +55,15 @@ class ModelLoader(BaseModel):
             logger.debug(f"Using API key from: {self.api_key_source}")
         logger.debug(f"API key value: {self.api_key[:8]}...{self.api_key[-4:] if len(self.api_key) > 12 else 'short_key'}")
 
-        if self.model_provider in ["groq_oss", "groq_oss_20b", "groq_lamma_8b_instant", "gemini_2.5_pro"]:
+        if self.model_provider in [
+            "groq_compound",
+            "groq_compound_mini",
+            "groq_llama_70b",
+            "groq_llama_8b",
+            "groq_oss",
+            "groq_oss_20b",
+            "gemini_2.5_pro",
+        ]:
             logger.debug(f"Loading LLM with config: {self.model_provider}")
             model_name = self.config["llm"][self.model_provider]["model_name"]
             logger.info(f"Using model: {model_name} with provided API key")
